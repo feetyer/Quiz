@@ -1,0 +1,10 @@
+node_modules
+.env
+.git
+.vscode
+backend/data
+backend/logs.txt
+backend/server.log
+backend/server.js
+scripts
+netlify
