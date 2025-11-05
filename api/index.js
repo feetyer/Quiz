@@ -140,8 +140,8 @@ app.get(['/admin', '/admin.html'], (_req, res) => {
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-// Catch-all for SPA routing
-app.get('*', (_req, res) => {
+// Catch-all for SPA routing - use regex instead of * for Express 5.x compatibility
+app.get(/^\/(?!api).*/, (_req, res) => {
   const indexPath = path.join(__dirname, '..', 'frontend', 'index.html');
   res.sendFile(indexPath);
 });
