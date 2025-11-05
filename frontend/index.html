@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Questionnaire de satisfaction / استبيان الرضا</title>
+  <link rel="icon" type="image/png" href="icons/qna.png" />
+  <link rel="apple-touch-icon" href="icons/qna.png" />
+  <meta name="theme-color" content="#0064C8" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    :root{
+      /* Cyber palette */
+      --bg:#E6F4FE;      /* background */
+      --surface:#ffffff; /* cards */
+      --title:#002857;   /* main titles */
+      --text:#002857;    /* base text for consistency */
+      --muted:#5a6a7c;   /* readable secondary */
+      --brand:#549de6;   /* primary blue */
+      --brand-700:#6fa0d8; /* dark blue */
+      --brand-200:#E6F4FE; /* light blue tint */
+      --accent:#FF7514;  /* highlight orange */
+      --danger:#d64545;
+      --ring:#E0E0E0;    /* shadows/borders */
+      --focus:#0064C8;   /* focus outline */
+      --border:#E0E0E0;
+      --btn-h:48px;      /* unified button height for form actions */
+      /* Pastel theme additions */
+      --lavender:#004e9b;       /* use requested blue for former purple accents */
+      --lavender-600:#4290dd;   /* same blue for borders/checked state */
+      --peach:#FFB995;
+      --peach-2:#FF9F80;
+      --navy:#0A0A23;
+      --gray-500:#555555;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:#ffffff; /* remove outer gradient/background for clean fullscreen look */
+      position:relative;
+    }
+    /* Remove decorative background shapes for minimal fullscreen UI */
+    body::before, body::after{ content:none }
+    .container{
+      max-width:1290px;
+      margin:0 auto;
+      padding:0; /* remove outer padding for true fullscreen card on mobile */
+      min-height:100vh;  /* fallback */
+      min-height:100svh; /* better mobile behavior */
+      display:grid;
+      align-content:center;
+      justify-items:center;
+    }
+    header{ display:none }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      color:var(--brand);
+      letter-spacing:.2px;
+      min-height:70px;
+      padding:10px 0;
+    }
+    .brand .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      box-shadow:0 0 0 4px #e8f9f7;
+    }
+    .toolbar{
+      display:flex;gap:8px;flex-wrap:wrap;
+    }
+    button, .btn{
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      box-shadow:0 2px 0 #cc5f00;
+      transition:.2s ease;
+    }
+    button.secondary{
+      background:var(--accent);
+      box-shadow:0 2px 0 var(--accent-700);
+    }
+    button.ghost{
+      background:#eaf8f7;
+      color:var(--brand);
+      box-shadow:none;
+      border:1px solid #d7efee;
+    }
+    button.danger{
+      background:var(--danger);
+      box-shadow:0 2px 0 #a93636;
+    }
+    button:disabled{opacity:.6;cursor:not-allowed}
+    button:hover{transform:translateY(-1px)}
+    button:focus-visible{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+    /* Small back/home icon button above form title */
+    .icon-btn{
+      width: 43px; height: 53px; display:inline-flex; align-items:center; justify-content:center;
+      border-radius:25px; border:1px solid var(--border); background:#fff;
+      box-shadow:0 2px 6px rgba(0,40,87,.08);
+      color:var(--brand);
+      cursor:pointer; 
+    }
+    #btnFormBack{ align-self:flex-start; margin-top:8px; margin-bottom:6px; cursor:pointer; display:inline-block }
+    .icon{ width:22px; height:22px; display:block; position:relative }
+    .icon-home{
+      background-image: url('icons/home.png');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+    }
+    /* Compact rectangular home button */
+    #btnFormBack{
+      width:22px; height:22px; border-radius:0;
+      background-color:transparent; border:none;
+      display:inline-block;
+      box-shadow:none;
+    }
+    /* Main form title */
+    #formTitle{ color:var(--navy); font-weight:700; font-family: Georgia, "Times New Roman", Times, serif }
+    .home-top-left{ position:fixed; top:12px; left:12px; width:32px; height:32px; z-index:9999 }
+    .card{
+      background:#ffffff;
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:26px;
+      box-shadow:0 24px 60px rgba(0,40,87,.08), 0 8px 20px rgba(0,40,87,.05);
+      animation:fadeIn .45s ease both;
+    }
+    /* Cards: desktop get comfortable width; mobile go fullscreen height */
+    #view-home.card,
+    #view-form.card,
+    #view-recap.card{
+      width:min(1289px, 92vw);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    /* Narrow, centered form like screenshot */
+    #view-form.card{ width:min(450px, 92vw); margin-inline:auto; padding:24px 22px; }
+    /* Use new font across the entire form */
+    #view-form{ font-family: Georgia, "Times New Roman", Times, serif }
+    /* Apply the new font to home and recap sections as well */
+    #view-home, #view-recap{ font-family: Georgia, "Times New Roman", Times, serif }
+    @media(max-width:768px){
+      #view-home.card,
+      #view-form.card,
+      #view-recap.card{
+        width:100vw;
+        min-height:100svh; /* fullscreen height */
+        border-radius:20px; /* keep rounded corners */
+        padding:22px;      /* balanced padding on phones */
+        justify-content:center; /* vertically center content */
+      }
+    }
+    .home-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .hero{
+      text-align:center;
+      padding:22px 14px;
+      background:#ffffff; /* remove gradient */
+      border-radius:18px;
+      border:2px solid var(--brand);
+    }
+    h1{margin:.2rem 0 0.75rem;font-size:clamp(26px,3.6vw,34px);font-weight:800;color:var(--title)}
+    p.lead{margin:0;color:var(--muted);font-weight:500}
+    .grid{ display:grid; gap:16px }
+    @media(min-width:768px){ .grid.cols-2{grid-template-columns:1fr 1fr; align-items:start } }
+    label{font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#639cd8}
+    /* Force requested color for specific labels */
+    #lblLang, #lblGender{ color:#002857 !important }
+    /* Pill style for home labels using #FF7514 */
+    #lblLang, #lblGender{
+      background:rgba(255,117,20,.10);
+      border:1px dashed #FF7514;
+      padding:10px 12px;
+      border-radius:12px;
+    }
+    /* Label icons */
+    #lblLang::before{
+      content:""; width:18px; height:18px; display:inline-block;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23002857' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M2 12h20'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z'/%3E%3C/svg%3E");
+      background-size:contain; background-repeat:no-repeat;
+    }
+    #lblGender::before{
+      content:""; width:18px; height:18px; display:inline-block;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23002857' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M4 21v-2a4 4 0 0 1 3-3.87'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+      background-size:contain; background-repeat:no-repeat;
+    }
+    select, input[type="radio"]{accent-color:var(--brand)}
+    /* Styled language select */
+    #selectLanguage{
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      appearance:none;
+      background:#fff;
+      border:1.5px solid var(--border);
+      border-radius:12px;
+      padding:10px 42px 10px 12px;
+      font-weight:600;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      color:#0f2a47;
+      box-shadow:0 1px 0 rgba(0,0,0,.02);
+      transition:border-color .2s ease, box-shadow .2s ease;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23677' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 12px center;
+      background-size:18px;
+      min-width:160px;
+    }
+    #selectLanguage, #selectLanguage option{ font-family: Georgia, "Times New Roman", Times, serif }
+    #selectLanguage:hover{ border-color:#d5d8e0 }
+    #selectLanguage:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; box-shadow:0 0 0 3px rgba(167,139,250,.25) }
+    [dir="rtl"] #selectLanguage{ padding-right:12px; padding-left:42px; background-position:left 12px center }
+    .field{display:flex;flex-direction:column;gap:6px}
+    .segmented{
+      display:flex;
+      gap:14px;
+      flex-wrap:nowrap;
+      flex-direction:column;
+    }
+    .chip{
+      display:flex;align-items:center;gap:12px;
+      width:100%;
+      padding:14px 16px;
+      border-radius:16px;
+      background:#fff;
+      border:1.5px solid #E8E8F2;
+      cursor:pointer;user-select:none; position:relative;
+      transition:border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .chip:hover{ transform:scale(1.02); box-shadow:0 6px 16px rgba(0,0,0,.07) }
+    .chip:has(input:checked){
+      border-color:var(--lavender-600);
+      background:#F0F7FF; /* light blue tint for selected option */
+      box-shadow:0 8px 20px rgba(0,0,0,.08);
+    }
+    .chip:has(input:focus-visible){
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+    .chip span{font-weight:700;color:#20314b; font-size:1rem}
+    .chip input{margin:0}
+    input[type="radio"]{
+      -webkit-appearance:none; appearance:none;
+      width:22px; height:22px; border:2px solid #CDD2E1; border-radius:50%;
+      background:#fff; display:inline-block; position:relative; flex-shrink:0;
+      transition:border-color .18s ease, box-shadow .18s ease;
+    }
+    input[type="radio"]:hover{ border-color:#BFC6DA }
+    input[type="radio"]:focus-visible{ outline:3px solid rgba(0,78,155,.25); outline-offset:2px }
+    input[type="radio"]:checked{
+      border-color:var(--lavender-600);
+      box-shadow:inset 0 0 0 6px var(--lavender-600);
+      background:#fff;
+    }
+    .scale{ display:flex;gap:10px;flex-wrap:wrap;align-items:center }
+    .scale input{display:none}
+    .scale label{
+      min-width:42px;text-align:center;padding:10px 12px;border:2px solid var(--border);border-radius:12px;cursor:pointer;background:#fff
+    }
+    .scale input:checked + label{
+      background:var(--brand-200);
+      border-color:var(--brand);
+      color:#2b2b3f;
+      font-weight:700;
+    }
+    .stepper{ height:6px; background:#F0F2FA; border:1px solid #ECEFF8; border-radius:999px; overflow:hidden }
+    .stepper > span{ display:block;height:100%;width:0;background:#0064C8;transition:width .25s ease }
+    .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+    /* On mobile, center primary action; desktop keep right-aligned on home */
+    #view-home .actions{ margin-top:auto; justify-content:flex-end; width:100% }
+    @media(max-width:768px){
+      #view-home .actions{ justify-content:center }
+    }
+    /* Form actions pinned to bottom, two buttons side-by-side */
+    #view-form .actions{ margin-top:auto; width:100%; justify-content:center; position:sticky; bottom:12px; padding-top:12px; gap:14px }
+    #view-form .actions button{ flex:1; height:var(--btn-h); padding:0 16px; border-radius:20px }
+    #view-form .actions #btnSubmit{ width:auto; height:var(--btn-h); border-radius:20px }
+    /* Step dots indicator under actions */
+    #view-form .actions .step-dots{ display:flex; justify-content:center; align-items:center; gap:10px; width:100%; flex-basis:100%; margin-top:2px }
+    #view-form .actions .step-dot{ width:8px; height:8px; border-radius:999px; background:#dfe6f2; opacity:.8; transition:transform .25s ease, background-color .25s ease, opacity .25s ease }
+    #view-form .actions .step-dot.active{ background:var(--lavender-600); opacity:1; transform:scale(1.6) }
+    @media(min-width:768px){ #view-form .actions .step-dot{ width:8px; height:8px } }
+    /* Hide Accueil button on form as requested */
+    #btnBackHome{ display:none !important }
+    /* Prev as secondary outline; Next as primary */
+    #btnPrev{ background:#fff; color:var(--accent); border:1.5px solid var(--accent); box-shadow:0 2px 6px rgba(0,0,0,.04); font-weight:700 }
+    #btnPrev:hover{ transform:scale(1.02); box-shadow:0 6px 14px rgba(0,0,0,.08) }
+    .hidden{display:none !important}
+    .muted{color:var(--muted)}
+    .table{width:100%;border-collapse:collapse;font-size:.95rem}
+    .table th,.table td{border:1px solid var(--border);padding:8px 10px;text-align:start}
+    .table th{background:#f6fbfc}
+    .pill{
+      background:#eef9ff;border:1px solid #d8eefb;color:#1d5b8f;font-weight:700;padding:2px 8px;border-radius:999px
+    }
+    .stats-grid{display:grid;gap:14px}
+    @media(min-width:992px){ .stats-grid{grid-template-columns:2fr 1fr} }
+    canvas{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px}
+    footer{margin:16px 0;color:var(--muted);font-size:.9rem;text-align:center}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideInLeft{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes slideInRight{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+    .slide-in-left{animation:slideInLeft .28s ease both}
+    .slide-in-right{animation:slideInRight .28s ease both}
+
+    /* RTL support tweaks */
+    [dir="rtl"] body{font-family:"Noto Naskh Arabic","Noto Sans Arabic",Tahoma,Arial,system-ui}
+    [dir="rtl"] .table th, [dir="rtl"] .table td{text-align:start}
+    /* Place radio to the right of text in RTL and align field labels */
+    [dir="rtl"] .chip{ flex-direction:row-reverse }
+    [dir="rtl"] .field > label{ text-align:center }
+
+    /* Question header look */
+    .field[data-q] > label{
+      background-color:#5ca9f6;
+      border:none;
+      padding:18px 16px;
+      border-radius:18px;
+      display:block;
+      text-align:center;
+      font-size:1.06rem;
+      font-weight:700;
+      line-height:1.35;
+      color:#ffffff;
+      margin-bottom:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+      font-family: Georgia, "Times New Roman", Times, serif;
+    }
+    .q-title{
+      font-size:1rem;
+      font-weight:600;
+      color:var(--muted);
+      line-height:1.25;
+      margin:0 0 .35rem 0;
+      padding-left:20px;
+      font-family: Georgia, "Times New Roman", Times, serif;
+    }
+    .q-title::after{
+      content:none;
+    }
+    /* Consistent spacing between label and options */
+    .field[data-q] .segmented{ margin-top:14px }
+    /* Optional subtle separator under label */
+    .field[data-q] > label::after{ content:""; display:block; height:0; }
+
+    /* Removed letter badges (a,b,c,d) before answers as requested */
+
+    /* Large rounded submit button like screenshot */
+    #btnSubmit{ width:100%; padding:14px 22px; border-radius:20px; background:linear-gradient(135deg,#FFA766 0%, var(--accent) 100%); box-shadow:0 12px 28px rgba(255,117,20,.35); font-size:1.05rem; font-weight:700 }
+    #btnSubmit:hover{ transform:scale(1.02) }
+    #btnSubmit:disabled{ opacity:.7; filter:saturate(.8) }
+
+    /* Start button modern look */
+    #btnStart{ background:linear-gradient(135deg, var(--brand) 0%, var(--brand-700) 100%); box-shadow:0 14px 30px rgba(0,40,87,.25); border-radius:999px; padding:14px 22px; transition:transform .2s ease, box-shadow .2s ease }
+    #btnStart:hover{ transform:translateY(-2px); box-shadow:0 18px 38px rgba(0,40,87,.35) }
+    /* Language button inside card (top-right) */
+    #btnLang{
+      background:#FF7514; color:#ffffff;
+      border:0;
+      padding:10px 14px; border-radius:999px; box-shadow:0 14px 30px rgba(224,224,224,.6);
+    }
+
+    /* Completion recap card (close to reference) */
+    .recap-card{border:1px solid #e9d5ff;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(109,40,217,.18);background:#fff}
+    .recap-head{background:linear-gradient(180deg,#ede9fe 0%, #ffffff 75%);padding:16px 18px 24px;display:flex;justify-content:center}
+    .pill-top{display:inline-block;font-weight:800;color:#6d28d9;background:rgba(109,40,217,.14);border:1px solid rgba(109,40,217,.25);padding:8px 12px;border-radius:12px}
+    .recap-body{padding:0 18px 22px}
+    .badge{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center;margin-top:-26px}
+    .hanger{position:absolute;top:-4px;height:10px;width:160px;background:linear-gradient(90deg,#a78bfa,#7c3aed);border-radius:999px;z-index:0}
+    .avatar{
+      width:96px;height:96px;border-radius:50%;
+      background:url('background.webp') center/cover no-repeat;
+      box-shadow:0 10px 24px rgba(0,0,0,.15);
+      border:4px solid #fff; outline:3px solid rgba(109,40,217,.25);
+      margin-top:-12px; position:relative; z-index:1;
+    }
+    .shield{position:relative;margin-top:-18px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 24px 28px;background:linear-gradient(180deg,#a78bfa 0%, #7c3aed 60%, #6d28d9 100%);border-radius:18px;box-shadow:0 10px 30px rgba(124,58,237,.35);color:#fff}
+    .shield::after{content:"";position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:18px solid #6d28d9;filter:drop-shadow(0 6px 10px rgba(124,58,237,.35))}
+    .badge-meta{display:flex;flex-direction:column;align-items:center}
+    .badge-meta .name{font-weight:800;color:#fff}
+    .badge-meta .rank-label{font-size:.9rem;opacity:.9}
+    .badge-meta .rank-value{font-size:2.2rem;font-weight:800;line-height:1;color:#fff}
+    .congrats-title{font-size:1.1rem;font-weight:800;color:#111827;text-align:center;margin:8px 0 4px}
+    .congrats-sub{color:#6b7280;text-align:center}
+
+    .cta-explore{display:inline-block;width:100%;max-width:260px;margin:14px auto 0;background:linear-gradient(135deg,#ff7a1a 0%, #ff9a3c 100%);border:none;color:#fff;font-weight:700;padding:12px 18px;border-radius:14px;box-shadow:0 14px 30px rgba(255,122,26,.35);cursor:pointer}
+
+    .field[data-q] .segmented .chip:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 10px 22px rgba(0,0,0,.08) }
+    .field[data-q] .segmented .chip:active{ transform:translateY(0) scale(.98) }
+
+    .field[data-q="q1"] .segmented .chip:nth-child(1),
+    .field[data-q="q5"] .segmented .chip:nth-child(1){ background:linear-gradient(135deg,#fff1f2,#ffe4e6); border-color:#fecaca }
+    .field[data-q="q1"] .segmented .chip:nth-child(1):has(input:checked),
+    .field[data-q="q5"] .segmented .chip:nth-child(1):has(input:checked){ background:linear-gradient(135deg,#ffe4e6,#fecdd3); border-color:#fb7185; box-shadow:0 8px 20px rgba(244,63,94,.25) }
+
+    .field[data-q="q1"] .segmented .chip:nth-child(2),
+    .field[data-q="q5"] .segmented .chip:nth-child(2){ background:linear-gradient(135deg,#fff7ed,#ffedd5); border-color:#fed7aa }
+    .field[data-q="q1"] .segmented .chip:nth-child(2):has(input:checked),
+    .field[data-q="q5"] .segmented .chip:nth-child(2):has(input:checked){ background:linear-gradient(135deg,#ffedd5,#fed7aa); border-color:#fdba74; box-shadow:0 8px 20px rgba(245,158,11,.25) }
+
+    .field[data-q="q1"] .segmented .chip:nth-child(3),
+    .field[data-q="q5"] .segmented .chip:nth-child(3){ background:linear-gradient(135deg,#fefce8,#fef9c3); border-color:#fde68a }
+    .field[data-q="q1"] .segmented .chip:nth-child(3):has(input:checked),
+    .field[data-q="q5"] .segmented .chip:nth-child(3):has(input:checked){ background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#facc15; box-shadow:0 8px 20px rgba(234,179,8,.25) }
+
+    .field[data-q="q1"] .segmented .chip:nth-child(4),
+    .field[data-q="q5"] .segmented .chip:nth-child(4){ background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0 }
+    .field[data-q="q1"] .segmented .chip:nth-child(4):has(input:checked),
+    .field[data-q="q5"] .segmented .chip:nth-child(4):has(input:checked){ background:linear-gradient(135deg,#d1fae5,#a7f3d0); border-color:#34d399; box-shadow:0 8px 20px rgba(16,185,129,.25) }
+
+    .field[data-q="q1"] .segmented .chip:nth-child(5),
+    .field[data-q="q5"] .segmented .chip:nth-child(5){ background:linear-gradient(135deg,#e0f2fe,#ccfbf1); border-color:#bae6fd }
+    .field[data-q="q1"] .segmented .chip:nth-child(5):has(input:checked),
+    .field[data-q="q5"] .segmented .chip:nth-child(5):has(input:checked){ background:linear-gradient(135deg,#bae6fd,#99f6e4); border-color:#22d3ee; box-shadow:0 8px 20px rgba(2,132,199,.25) }
+
+    .field[data-q="q2"] .segmented .chip:has(input[value="always"]){ background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0 }
+    .field[data-q="q2"] .segmented .chip:has(input[value="always"]:checked){ background:linear-gradient(135deg,#d1fae5,#a7f3d0); border-color:#34d399; box-shadow:0 8px 20px rgba(16,185,129,.25) }
+
+    .field[data-q="q2"] .segmented .chip:has(input[value="often"]){ background:linear-gradient(135deg,#fefce8,#fef9c3); border-color:#fde68a }
+    .field[data-q="q2"] .segmented .chip:has(input[value="often"]:checked){ background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#facc15; box-shadow:0 8px 20px rgba(234,179,8,.25) }
+
+    .field[data-q="q2"] .segmented .chip:has(input[value="rarely"]){ background:linear-gradient(135deg,#fff7ed,#ffedd5); border-color:#fed7aa }
+    .field[data-q="q2"] .segmented .chip:has(input[value="rarely"]:checked){ background:linear-gradient(135deg,#ffedd5,#fed7aa); border-color:#fdba74; box-shadow:0 8px 20px rgba(245,158,11,.25) }
+
+    .field[data-q="q2"] .segmented .chip:has(input[value="never"]){ background:linear-gradient(135deg,#fff1f2,#ffe4e6); border-color:#fecaca }
+    .field[data-q="q2"] .segmented .chip:has(input[value="never"]:checked){ background:linear-gradient(135deg,#ffe4e6,#fecdd3); border-color:#fb7185; box-shadow:0 8px 20px rgba(244,63,94,.25) }
+
+    .field[data-q="q3"] .segmented .chip:has(input[value="yes"]){ background:linear-gradient(135deg,#eff6ff,#dbeafe); border-color:#bfdbfe }
+    .field[data-q="q3"] .segmented .chip:has(input[value="yes"]:checked){ background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-color:#60a5fa; box-shadow:0 8px 20px rgba(59,130,246,.25) }
+
+    .field[data-q="q3"] .segmented .chip:has(input[value="no"]){ background:linear-gradient(135deg,#ff3737,#ff6f6f); border-color:#ff3737 }
+    .field[data-q="q3"] .segmented .chip:has(input[value="no"]:checked){ background:linear-gradient(135deg,#ff6f6f,#ff3737); border-color:#ff3737; box-shadow:0 8px 20px rgba(255,55,55,.25) }
+
+    .field[data-q="q3"] .segmented .chip:has(input[value="partial"]){ background:linear-gradient(135deg,#ffff99,#ffff66); border-color:#ffff66 }
+    .field[data-q="q3"] .segmented .chip:has(input[value="partial"]:checked){ background:linear-gradient(135deg,#ffff66,#ffff99); border-color:#ffff66; box-shadow:0 8px 20px rgba(255,255,102,.25) }
+
+    .field[data-q="q4"] .segmented .chip:has(input[value="always"]){ background:linear-gradient(135deg,#eff6ff,#dbeafe); border-color:#bfdbfe }
+    .field[data-q="q4"] .segmented .chip:has(input[value="always"]:checked){ background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-color:#60a5fa; box-shadow:0 8px 20px rgba(59,130,246,.25) }
+
+    .field[data-q="q4"] .segmented .chip:has(input[value="often"]){ background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0 }
+    .field[data-q="q4"] .segmented .chip:has(input[value="often"]:checked){ background:linear-gradient(135deg,#d1fae5,#a7f3d0); border-color:#34d399; box-shadow:0 8px 20px rgba(16,185,129,.25) }
+
+    .field[data-q="q4"] .segmented .chip:has(input[value="rarely"]){ background:linear-gradient(135deg,#fefce8,#fef9c3); border-color:#fde68a }
+    .field[data-q="q4"] .segmented .chip:has(input[value="rarely"]:checked){ background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#facc15; box-shadow:0 8px 20px rgba(234,179,8,.25) }
+
+    .field[data-q="q4"] .segmented .chip:has(input[value="never"]){ background:linear-gradient(135deg,#fff1f2,#ffe4e6); border-color:#fecaca }
+    .field[data-q="q4"] .segmented .chip:has(input[value="never"]:checked){ background:linear-gradient(135deg,#ffe4e6,#fecdd3); border-color:#fb7185; box-shadow:0 8px 20px rgba(244,63,94,.25) }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header></header>
+    <!-- Home / Intro -->
+    <section id="view-home" class="card">
+      <div class="home-top">
+        <div class="brand" aria-label="Brand">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="appTitle">Quiz RH</span>
+        </div>
+        <div class="toolbar"></div>
+      </div>
+      <div class="hero">
+        <h1 id="homeTitle">Questionnaire de satisfaction</h1>
+        <p id="homeSubtitle" class="lead">Votre avis nous aide à améliorer l’environnement de travail.</p>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="field">
+          <label for="selectLanguage" id="lblLang">Langue</label>
+          <select id="selectLanguage" aria-label="Langue" tabindex="0">
+            <option value="fr">Français</option>
+            <option value="ar">العربية</option>
+            <option value="ma">Darija 🇲🇦</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="lblGender">Sexe</label>
+          <div class="segmented" role="radiogroup" aria-label="Sexe">
+            <label class="chip"><input type="radio" name="gender" value="male"><span id="gMale">Homme</span></label>
+            <label class="chip"><input type="radio" name="gender" value="female"><span id="gFemale">Femme</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px">
+        <button id="btnStart" type="button">Démarrer</button>
+      </div>
+    </section>
+
+    <!-- Survey Form -->
+    <section id="view-form" class="card hidden" aria-live="polite">
+      <div class="stepper" aria-hidden="false" title="Progression">
+        <span id="progressBar"></span>
+      </div>
+      <span id="btnFormBack" class="icon icon-home" role="button" aria-label="Accueil" title="Accueil" aria-hidden="false"></span>
+      <h2 id="formTitle" style="margin-top:12px">Répondez aux questions</h2>
+
+      <!-- Q1: Satisfaction 1-5 (vertical cards like QCM) -->
+      <div class="field" data-q="q1">
+        <div class="q-title" id="q1Title"></div>
+        <label id="q1Label">Satisfaction au travail</label>
+        <div class="segmented" role="radiogroup" aria-labelledby="q1Label">
+          <label class="chip"><input type="radio" name="q1" value="1"><span id="q1d1">1</span></label>
+          <label class="chip"><input type="radio" name="q1" value="2"><span id="q1d2">2</span></label>
+          <label class="chip"><input type="radio" name="q1" value="3"><span id="q1d3">3</span></label>
+          <label class="chip"><input type="radio" name="q1" value="4"><span id="q1d4">4</span></label>
+          <label class="chip"><input type="radio" name="q1" value="5"><span id="q1d5">5</span></label>
+        </div>
+      </div>
+
+      <!-- Q2: Reconnaissance -->
+      <div class="field" data-q="q2">
+        <div class="q-title" id="q2Title"></div>
+        <label id="q2Label">Reconnaissance et motivation</label>
+        <div class="segmented" role="radiogroup" aria-labelledby="q2Label">
+          <label class="chip"><input type="radio" name="q2" value="always"><span id="q2Always">Toujours</span></label>
+          <label class="chip"><input type="radio" name="q2" value="often"><span id="q2Often">Souvent</span></label>
+          <label class="chip"><input type="radio" name="q2" value="rarely"><span id="q2Rarely">Rarement</span></label>
+          <label class="chip"><input type="radio" name="q2" value="never"><span id="q2Never">Jamais</span></label>
+        </div>
+      </div>
+
+      <!-- Q3: Evolution -->
+      <div class="field" data-q="q3">
+        <div class="q-title" id="q3Title"></div>
+        <label id="q3Label">Évolution de carrière</label>
+        <div class="segmented" role="radiogroup" aria-labelledby="q3Label">
+          <label class="chip"><input type="radio" name="q3" value="yes"><span id="q3Yes">Oui</span></label>
+          <label class="chip"><input type="radio" name="q3" value="no"><span id="q3No">Non</span></label>
+          <label class="chip"><input type="radio" name="q3" value="partial"><span id="q3Partial">Partiellement</span></label>
+        </div>
+      </div>
+      <!-- Q4: Communication -->
+      <div class="field" data-q="q4">
+        <div class="q-title" id="q4Title"></div>
+        <label id="q4Label">Communication et feedback</label>
+        <div class="segmented" role="radiogroup" aria-labelledby="q4Label">
+          <label class="chip"><input type="radio" name="q4" value="always"><span id="q4Always">Toujours</span></label>
+          <label class="chip"><input type="radio" name="q4" value="often"><span id="q4Often">Souvent</span></label>
+          <label class="chip"><input type="radio" name="q4" value="rarely"><span id="q4Rarely">Rarement</span></label>
+          <label class="chip"><input type="radio" name="q4" value="never"><span id="q4Never">Jamais</span></label>
+        </div>
+      </div>
+
+      <!-- Q5: Installations 1-5 (vertical cards like QCM) -->
+      <div class="field" data-q="q5">
+        <div class="q-title" id="q5Title"></div>
+        <label id="q5Label">Installations et environnement</label>
+        <div class="segmented" role="radiogroup" aria-labelledby="q5Label">
+          <label class="chip"><input type="radio" name="q5" value="1"><span id="q5v1">1</span></label>
+          <label class="chip"><input type="radio" name="q5" value="2"><span id="q5v2">2</span></label>
+          <label class="chip"><input type="radio" name="q5" value="3"><span id="q5v3">3</span></label>
+          <label class="chip"><input type="radio" name="q5" value="4"><span id="q5v4">4</span></label>
+          <label class="chip"><input type="radio" name="q5" value="5"><span id="q5v5">5</span></label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnBackHome" type="button" class="ghost">Accueil</button>
+        <button id="btnPrev" type="button" class="ghost">Précédent</button>
+        <button id="btnSubmit" type="button">Suivant</button>
+      </div>
+    </section>
+
+    <!-- Confirmation / Recap (modern completion card) -->
+    <section id="view-recap" class="card hidden">
+      <div class="recap-card">
+        <div class="recap-head">
+          <span id="recapPill" class="pill-top">Correct Answer 8/10</span>
+        </div>
+        <div class="recap-body">
+          <div class="badge">
+            <span class="hanger" aria-hidden="true"></span>
+            <div class="avatar" aria-hidden="true"></div>
+            <div class="shield">
+              <div class="badge-meta">
+                <div class="name" id="recapName">Roxane</div>
+                <div class="rank-label" id="rankLabel">Rank</div>
+                <div class="rank-value" id="rankValue">432</div>
+              </div>
+            </div>
+          </div>
+          <div class="congrats-title" id="congratsTitle">Congratulations, you've completed this quiz!</div>
+          <div class="congrats-sub" id="congratsSub">Let's keep testing your knowledge by playing more quizzes!</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnAnother" type="button" class="cta-explore">Explorer plus</button>
+      </div>
+    </section>
+
+    
+  </div>
+
+  
+
+  <script>
+    // ----------------------------
+    // Textes FR / AR + mapping RTL
+    // ----------------------------
+    const i18n = {
+      fr: {
+        title: "Quiz RH",
+        homeTitle: "Questionnaire de satisfaction",
+        homeSubtitle: "Votre avis nous aide à améliorer l’environnement de travail.",
+        lang: "Langue",
+        gender: "Sexe",
+        gMale: "Homme",
+        gFemale: "Femme",
+        gOther: "Préfère ne pas répondre",
+        start: "Démarrer",
+        backHome: "Accueil",
+        formTitle: "Répondez aux questions",
+        submit: "Envoyer",
+        recapTitle: "Merci pour votre participation",
+        recapSubtitle: "",
+        another: "Envoyer un autre",
+        exploreMore: "Explorer plus",
+        recapPillDefault: "Questionnaire terminé",
+        congratsTitle: "Félicitations, vous avez terminé ce quiz !",
+        congratsSub: "Continuons à tester vos connaissances en jouant à d'autres quiz.",
+        rankLabel: "Rang",
+        scorePrefix: "Score",
+        toStats: "Statistiques",
+        stats: "Statistiques",
+        export: "Export CSV",
+        reset: "Réinitialiser",
+        print: "Imprimer",
+        next: "Suivant",
+        previous: "Précédent",
+        summary: (n)=>`Totaux: ${n} réponse${n>1?"s":""}.`,
+        segTitle: "Par sexe",
+        tableTitle: "Toutes les réponses",
+        footer: "Données enregistrées sur le serveur.",
+        // Questions (updated FR)
+        q1: "Satisfaction au travail\nQuel est votre niveau de satisfaction concernant votre environnement de travail et vos tâches quotidiennes ?",
+        q2: "Reconnaissance et motivation\nPensez-vous que votre performance, votre assiduité et votre discipline sont reconnues et valorisées par l’entreprise ?",
+        q3: "Évolution de carrière\nÊtes-vous informé(e) des opportunités de promotion interne (ex : Shift Leader, Agent de production, Formatrice) et motivé(e) à postuler ?",
+        q4: "Communication et feedback\nVous sentez-vous à l’aise pour partager vos suggestions ou remarques avec votre superviseur ou l’équipe RH ?",
+        q5: "Installations et environnement\nQuel est votre niveau de satisfaction concernant les installations sur le lieu de travail (réfectoire, vestiaires, espaces de repos) ?",
+        // Q5 scale descriptions (FR) – same set as Q1
+        q5Scale: [
+          "Très insatisfait(e)",
+          "Insatisfait(e)",
+          "Neutre / Moyen(ne)",
+          "Satisfait(e)",
+          "Très satisfait(e)"
+        ],
+        // Q1 scale descriptions (FR)
+        q1Scale: [
+          "Très insatisfait(e)",
+          "Insatisfait(e)",
+          "Neutre / Moyen(ne)",
+          "Satisfait(e)",
+          "Très satisfait(e)"
+        ],
+        // Options
+        always: "Toujours",
+        often: "Souvent",
+        rarely: "Rarement",
+        never: "Jamais",
+        yes: "Oui",
+        no: "Non",
+        partial: "Partiellement",
+        // Admin labels
+        avg: "Moyenne",
+        satisfaction: "Satisfaction",
+        facilities: "Installations",
+        recognition: "Reconnaissance",
+        histogram: "Histogramme satisfaction",
+        // Validation
+        valLanguage: "Veuillez choisir une langue.",
+        valGender: "Veuillez choisir un sexe.",
+        valAll: "Veuillez répondre à toutes les questions.",
+        // Reset confirm
+        confirmReset: "Voulez-vous vraiment supprimer toutes les données ?",
+        // CSV header
+        csvHeader: ["Horodatage","Langue","Sexe","Q1_Satisfaction(1-5)","Q2_Reconnaissance","Q3_Evolution","Q4_Communication","Q5_Installations(1-5)"]
+      },
+      ar: {
+        title: "Quiz RH",
+        homeTitle: "استبيان الرضا",
+        homeSubtitle: "ملاحظاتكم تساعدنا على تحسين بيئة العمل.",
+        lang: "اللغة",
+        gender: "الجنس",
+        gMale: "ذكر",
+        gFemale: "أنثى",
+        gOther: "أفضل عدم الإجابة",
+        start: "ابدأ",
+        backHome: "الصفحة الرئيسية",
+        formTitle: "أجب عن الأسئلة",
+        submit: "إرسال",
+        recapTitle: "شكراً لمشاركتك",
+        recapSubtitle: "فيما يلي ملخص لإجاباتك:",
+        another: "أرسل آخر",
+        toStats: "الإحصائيات",
+        stats: "الإحصائيات",
+        export: "تصدير CSV",
+        reset: "إعادة الضبط",
+        print: "طباعة",
+        next: "التالي",
+        previous: "السابق",
+        summary: (n)=>`الإجمالي: ${n} إجابة.`,
+        segTitle: "حسب الجنس",
+        tableTitle: "جميع الإجابات",
+        footer: "البيانات محفوظة في الخادم.",
+        // Questions (updated AR)
+        q1: "الرضا عن العمل\nما مدى رضاك عن بيئة العمل والمهام اليومية؟",
+        q1Hint: "",
+        q2: "التقدير والتحفيز\nهل تشعر أن أداءك وحضورك وانضباطك محل تقدير وتقييم من قبل الشركة؟",
+        q3: "الترقية الوظيفية\nهل أنت على علم بفرص الترقي الداخلية (مثل قائد الوردية، عامل إنتاج، مدربة) وهل تشعر بالحافز للتقدم؟",
+        q4: "التواصل والملاحظات\nهل تشعر بالراحة عند تقديم اقتراحاتك أو ملاحظات للمشرف أو فريق الموارد البشرية؟",
+        q5: "المرافق وبيئة العمل\nما مدى رضاك عن مرافق مكان العمل (الكافيتيريا، غرف الملابس، مناطق الاستراحة)؟",
+        q5Hint: "",
+        // Q5 scale descriptions (AR) – same set as Q1
+        q5Scale: [
+          "غير راضٍ جداً",
+          "غير راضٍ",
+          "محايد / متوسط الرضا",
+          "راضٍ",
+          "راضٍ جداً"
+        ],
+        // Q1 scale descriptions (AR)
+        q1Scale: [
+          "غير راضٍ جداً",
+          "غير راضٍ",
+          "محايد / متوسط الرضا",
+          "راضٍ",
+          "راضٍ جداً"
+        ],
+        // Options
+        always: "دائماً",
+        often: "غالباً",
+        rarely: "نادراً",
+        never: "أبداً",
+        yes: "نعم",
+        no: "لا",
+        partial: "جزئياً",
+        // Admin labels
+        avg: "المتوسط",
+        satisfaction: "الرضا",
+        facilities: "المرافق",
+        recognition: "التقدير",
+        histogram: "مخطط تكراري للرضا",
+        // Validation
+        valLanguage: "يرجى اختيار اللغة.",
+        valGender: "يرجى اختيار الجنس.",
+        valAll: "يرجى الإجابة عن جميع الأسئلة.",
+        // Reset confirm
+        confirmReset: "هل تريد حقاً حذف جميع البيانات؟",
+        // CSV header
+        csvHeader: ["الوقت","اللغة","الجنس","Q1_الرضا(1-5)","Q2_التقدير","Q3_الترقية","Q4_التواصل","Q5_المرافق(1-5)"],
+        exploreMore: "اكتشف المزيد",
+        recapPillDefault: "اكتمل الاستبيان",
+        congratsTitle: "تهانينا، لقد أكملت هذا الاختبار!",
+        congratsSub: "لنواصل اختبار معرفتك باللعب في المزيد من الاختبارات.",
+        rankLabel: "الترتيب",
+        scorePrefix: "النتيجة"
+      },
+      ma: {
+        title: "Quiz RH",
+        homeTitle: "استبيان الرضا",
+        homeSubtitle: "ملاحظاتكم تساعدنا على تحسين بيئة العمل.",
+        lang: "اللغة",
+        gender: "الجنس",
+        gMale: "ذكر",
+        gFemale: "أنثى",
+        gOther: "أفضل عدم الإجابة",
+        start: "ابدأ",
+        backHome: "الصفحة الرئيسية",
+        formTitle: "أجب عن الأسئلة",
+        submit: "إرسال",
+        recapTitle: "شكراً لمشاركتك",
+        recapSubtitle: "فيما يلي ملخص لإجاباتك:",
+        another: "أرسل آخر",
+        toStats: "الإحصائيات",
+        stats: "الإحصائيات",
+        export: "تصدير CSV",
+        reset: "إعادة الضبط",
+        print: "طباعة",
+        next: "التالي",
+        previous: "السابق",
+        summary: (n)=>`الإجمالي: ${n} إجابة.`,
+        segTitle: "حسب الجنس",
+        tableTitle: "جميع الإجابات",
+        footer: "البيانات محفوظة في الخادم.",
+        // Questions (Darija)
+        q1: "رضا على الخدمة / Satisfaction au travail\nشنو هو المستوى ديال الرضا ديالك على البيئة اللي خدام(ة) فيها وعلى المهام اليومية ديالك؟",
+        q1Hint: "",
+        q2: "التقدير والتحفيز / Reconnaissance et motivation\nكتحس(ي) باللي الأداء ديالك، الحضور والانضباط كيتشافو وكيتم تقديرهم من طرف الشركة؟",
+        q3: "الترقية الوظيفية / Évolution de carrière\nواش عارف(ة) بفرص الترقية اللي كاينة فالشركة (بحال Shift Leader، Agent de production، Formatrice)؟ وكتحس(ي) بالحافز باش تقدّم؟",
+        q4: "التواصل والملاحظات / Communication et feedback\nكتحس(ي) بالراحة باش تشارك(ي) الأفكار أو الملاحظات ديالك مع المشرف ولا مع فريق الموارد البشرية؟",
+        q5: "المرافق وبيئة الخدمة / Installations et environnement\nشحال راضي(ة) على المرافق فمكان الخدمة (الكافيتيريا، غرف تبديل الملابس، أماكن الراحة)؟",
+        q5Hint: "",
+        // Q5 scale descriptions (Darija) – same set as Q1
+        q5Scale: [
+          "ماشي راضي(ة) بزاف",
+          "ماشي راضي(ة)",
+          "متوسط",
+          "راضي(ة)",
+          "راضي(ة) بزاف"
+        ],
+        // Q1 scale descriptions (Darija)
+        q1Scale: [
+          "ماشي راضي(ة) بزاف",
+          "ماشي راضي(ة)",
+          "متوسط",
+          "راضي(ة)",
+          "راضي(ة) بزاف"
+        ],
+        // Options
+        always: "ديما",
+        often: "بزاف ديال المرات",
+        rarely: "قليل",
+        never: "ابدا",
+        yes: "إيه",
+        no: "لا",
+        partial: "شوية",
+        // Admin labels
+        avg: "المتوسط",
+        satisfaction: "الرضا",
+        facilities: "المرافق",
+        recognition: "التقدير",
+        histogram: "مخطط تكراري للرضا",
+        // Validation
+        valLanguage: "يرجى اختيار اللغة.",
+        valGender: "يرجى اختيار الجنس.",
+        valAll: "يرجى الإجابة عن جميع الأسئلة.",
+        // Reset confirm
+        confirmReset: "هل تريد حقاً حذف جميع البيانات؟",
+        // CSV header
+        csvHeader: ["الوقت","اللغة","الجنس","Q1_الرضا(1-5)","Q2_التقدير","Q3_الترقية","Q4_التواصل","Q5_المرافق(1-5)"],
+        exploreMore: "اكتشف المزيد",
+        recapPillDefault: "اكتمل الاستبيان",
+        congratsTitle: "تهانينا، لقد أكملت هذا الاختبار!",
+        congratsSub: "لنواصل اختبار معرفتك باللعب في المزيد من الاختبارات.",
+        rankLabel: "الترتيب",
+        scorePrefix: "النتيجة"
+      }
+    };
+
+    // ---------------
+    // State & helpers
+    // ---------------
+    
+    // Determine API base: when opened via file://, use localhost server; when served over http(s), use same origin
+    const API_BASE = (location.protocol === 'http:' || location.protocol === 'https:') ? '' : 'http://localhost:3000';
+    const $ = (sel)=>document.querySelector(sel);
+    const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+    const views = {
+      home: $("#view-home"),
+      form: $("#view-form"),
+      recap: $("#view-recap"),
+    };
+    let currentLang = localStorage.getItem("surveyLang") || "fr";
+    let charts = [];
+    const questionOrder = ["q1","q2","q3","q4","q5"];
+    let currentIndex = 0;
+    let lastIndex = 0;
+
+    function setDirByLang(lang){
+      const isAR = (lang === "ar" || lang === "ma");
+      document.documentElement.lang = lang;
+      document.documentElement.dir = isAR ? "rtl" : "ltr";
+    }
+
+    function t(key){
+      return i18n[currentLang][key];
+    }
+
+    function show(view){
+      // Home: hide form and recap
+      if(view === views.home){
+        views.home.classList.remove("hidden");
+        views.form.classList.add("hidden");
+        views.recap.classList.add("hidden");
+        return;
+      }
+      // Form: show only form
+      if(view === views.form){
+        views.home.classList.add("hidden");
+        views.recap.classList.add("hidden");
+        views.form.classList.remove("hidden");
+        showQuestion(currentIndex);
+        return;
+      }
+      // Recap: keep form visible, reveal recap below it
+      if(view === views.recap){
+        views.home.classList.add("hidden");
+        views.form.classList.remove("hidden");
+        views.recap.classList.remove("hidden");
+        return;
+      }
+    }
+
+    function showQuestion(i){
+      const total = questionOrder.length;
+      const nextIndex = Math.max(0, Math.min(i, total-1));
+      const goingForward = nextIndex > currentIndex;
+      currentIndex = nextIndex;
+      // Toggle visibility for each question field
+      const activeQ = questionOrder[currentIndex];
+      $$(".field[data-q]").forEach(el=>{
+        const q = el.getAttribute("data-q");
+        if(q === activeQ){
+          el.style.display = "block";
+          // restart animation
+          el.classList.remove("slide-in-left","slide-in-right");
+          void el.offsetWidth;
+          el.classList.add(goingForward ? "slide-in-right" : "slide-in-left");
+        } else {
+          el.style.display = "none";
+          el.classList.remove("slide-in-left","slide-in-right");
+        }
+      });
+      // Progress: based on answered count (fallback to index)
+      updateProgress();
+      // Buttons
+      const isLast = currentIndex === total-1;
+      const isFirst = currentIndex === 0;
+      const btnPrev = $("#btnPrev");
+      const btnSubmit = $("#btnSubmit");
+      if(btnPrev){ btnPrev.disabled = isFirst; }
+      if(btnSubmit){ btnSubmit.textContent = isLast ? i18n[currentLang].submit : i18n[currentLang].next; }
+      // Disable Next/Submit until current answered
+      updateNavDisabled();
+      updateStepDots();
+      lastIndex = currentIndex;
+    }
+
+    function updateNavDisabled(){
+      const qName = questionOrder[currentIndex];
+      const answered = !!getCheckedValue(qName);
+      const btnSubmit = $("#btnSubmit");
+      if(btnSubmit){ btnSubmit.disabled = !answered; }
+    }
+
+    
+
+    function getSelectedGender(){
+      const el = document.querySelector('input[name="gender"]:checked');
+      return el ? el.value : null;
+    }
+
+    function getFormData(){
+      const data = {
+        lang: currentLang,
+        gender: getSelectedGender(),
+        q1: getCheckedValue("q1"),
+        q2: getCheckedValue("q2"),
+        q3: getCheckedValue("q3"),
+        q4: getCheckedValue("q4"),
+        q5: getCheckedValue("q5"),
+        ts: new Date().toISOString()
+      };
+      return data;
+    }
+
+    function getCheckedValue(name){
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : null;
+    }
+
+    function validateBeforeSubmit(){
+      if(!currentLang) { alert(t("valLanguage")); return false; }
+      if(!getSelectedGender()) { alert(t("valGender")); return false; }
+      const need = ["q1","q2","q3","q4","q5"];
+      for(const n of need){
+        if(!getCheckedValue(n)){
+          alert(t("valAll"));
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function updateProgress(){
+      const names = ["q1","q2","q3","q4","q5"];
+      const answered = names.filter(n => !!getCheckedValue(n)).length;
+      const pct = Math.round((answered / names.length) * 100);
+      $("#progressBar").style.width = pct + "%";
+    }
+    function buildStepDots(){
+      const actions = document.querySelector('#view-form .actions');
+      if(!actions) return;
+      let wrap = document.getElementById('stepDots');
+      if(!wrap){
+        wrap = document.createElement('div');
+        wrap.id = 'stepDots';
+        wrap.className = 'step-dots';
+        actions.appendChild(wrap);
+      }
+      wrap.innerHTML = '';
+      (questionOrder||[]).forEach((_, i)=>{
+        const dot = document.createElement('span');
+        dot.className = 'step-dot' + (i===currentIndex?' active':'');
+        wrap.appendChild(dot);
+      });
+    }
+    function updateStepDots(){
+      const dots = document.querySelectorAll('#stepDots .step-dot');
+      dots.forEach((el, idx)=>{ el.classList.toggle('active', idx===currentIndex); });
+    }
+
+    function clearForm(){
+      ["q1","q2","q3","q4","q5"].forEach(n=>{
+        const checked = document.querySelector(`input[name="${n}"]:checked`);
+        if(checked) checked.checked = false;
+      });
+      updateProgress();
+    }
+
+    // ---------------------------
+    // Language application (UI)
+    // ---------------------------
+    function applyLanguage(){
+      setDirByLang(currentLang);
+      const L = i18n[currentLang];
+
+      $("#appTitle").textContent = L.title;
+      $("#homeTitle").textContent = L.homeTitle;
+      $("#homeSubtitle").textContent = L.homeSubtitle;
+      $("#lblLang").textContent = L.lang;
+      $("#lblGender").textContent = L.gender;
+      $("#gMale").textContent = L.gMale;
+      $("#gFemale").textContent = L.gFemale;
+      const elOther = document.querySelector('#gOther'); if(elOther) elOther.textContent = L.gOther;
+      $("#btnStart").textContent = L.start;
+      $("#btnBackHome").textContent = L.backHome;
+      $("#btnPrev").textContent = L.previous;
+      $("#formTitle").textContent = L.formTitle;
+      $("#btnSubmit").textContent = (currentIndex === questionOrder.length-1) ? L.submit : L.next;
+      const elRecapTitle = document.getElementById('recapTitle'); if(elRecapTitle) elRecapTitle.textContent = L.recapTitle;
+      const elRecapSub = document.getElementById('recapSubtitle'); if(elRecapSub) elRecapSub.textContent = L.recapSubtitle;
+      const elPill = document.getElementById('recapPill'); if(elPill) elPill.textContent = `${L.correctAnswer||'Correct Answer'} ${Math.max(2, (Number(getCheckedValue('q1'))||0)+(Number(getCheckedValue('q5'))||0))}/10`;
+      const elCTABtn = document.getElementById('btnAnother'); if(elCTABtn) elCTABtn.textContent = (L.exploreMore || L.another || elCTABtn.textContent);
+      const elCongratsTitle = document.getElementById('congratsTitle'); if(elCongratsTitle) elCongratsTitle.textContent = L.congratsTitle || elCongratsTitle.textContent;
+      const elCongratsSub = document.getElementById('congratsSub'); if(elCongratsSub) elCongratsSub.textContent = L.congratsSub || elCongratsSub.textContent;
+      const elRankLabel = document.getElementById('rankLabel'); if(elRankLabel) elRankLabel.textContent = L.rankLabel || elRankLabel.textContent;
+      const ft = document.getElementById('footerText');
+      if(ft) ft.textContent = L.footer;
+
+      // Toggle label for header language switch (if present)
+      const bl = document.getElementById('btnLang');
+      if(bl) bl.textContent = currentLang === "fr" ? "العربية" : "FR";
+      const blf = document.getElementById('btnLangFloat');
+      if(blf) blf.textContent = currentLang === "fr" ? "العربية" : "FR";
+
+      // Questions
+      function setTitleAndLabel(titleId, labelId, rawStr, hint){
+        const s = (rawStr||"").toString();
+        const parts = s.split(/\n+/);
+        const title = (parts[0]||"").trim();
+        const descRaw = parts.slice(1).join("\n").trim();
+        const desc = descRaw || (hint ? `${s} ${hint}`.trim() : s);
+        const tEl = document.getElementById(titleId);
+        const lEl = document.getElementById(labelId);
+        if(tEl) tEl.textContent = title;
+        if(lEl) lEl.textContent = desc;
+      }
+      setTitleAndLabel('q1Title','q1Label', L.q1, L.q1Hint);
+      setTitleAndLabel('q2Title','q2Label', L.q2);
+      setTitleAndLabel('q3Title','q3Label', L.q3);
+      setTitleAndLabel('q4Title','q4Label', L.q4);
+      setTitleAndLabel('q5Title','q5Label', L.q5, L.q5Hint);
+
+      // Q1 scale option labels -> descriptive texts (segmented spans)
+      const q1labs = L.q1Scale || [];
+      const q1SpanIds = ["q1d1","q1d2","q1d3","q1d4","q1d5"];
+      const q1Emojis = ["⭐","⭐⭐","⭐⭐⭐","⭐⭐⭐⭐","⭐⭐⭐⭐⭐"];
+      q1SpanIds.forEach((sid, idx)=>{
+        const el = document.getElementById(sid);
+        if(el && q1labs[idx]) el.textContent = `${q1Emojis[idx]} ${q1labs[idx]}`;
+      });
+
+      // Q5 scale option labels -> descriptive texts (segmented spans)
+      const q5labs = L.q5Scale || [];
+      const q5SpanIds = ["q5v1","q5v2","q5v3","q5v4","q5v5"];
+      const q5Emojis = ["⭐","⭐⭐","⭐⭐⭐","⭐⭐⭐⭐","⭐⭐⭐⭐⭐"];
+      q5SpanIds.forEach((sid, idx)=>{
+        const el = document.getElementById(sid);
+        if(el && q5labs[idx]) el.textContent = `${q5Emojis[idx]} ${q5labs[idx]}`;
+      });
+
+      // Option labels
+      const F = { always:"✅", often:"🟢", rarely:"🟠", never:"⛔" };
+      $("#q2Always").textContent = `${F.always} ${L.always}`;
+      $("#q2Often").textContent = `${F.often} ${L.often}`;
+      $("#q2Rarely").textContent = `${F.rarely} ${L.rarely}`;
+      $("#q2Never").textContent = `${F.never} ${L.never}`;
+
+      $("#q3Yes").textContent = `✅ ${L.yes}`;
+      $("#q3No").textContent = `❌ ${L.no}`;
+      $("#q3Partial").textContent = `🟡 ${L.partial}`;
+
+      $("#q4Always").textContent = `${F.always} ${L.always}`;
+      $("#q4Often").textContent = `${F.often} ${L.often}`;
+      $("#q4Rarely").textContent = `${F.rarely} ${L.rarely}`;
+      $("#q4Never").textContent = `${F.never} ${L.never}`;
+
+      // Home dropdown reflects current language
+      $("#selectLanguage").value = currentLang;
+
+      // If we are in form, refresh question UI nav labels
+      if(!views.form.classList.contains("hidden")){
+        showQuestion(currentIndex);
+      }
+    }
+
+    // ---------------------------
+    // Recap builder
+    // ---------------------------
+    function renderRecap(ans){
+      const L = i18n[currentLang];
+      const score10 = (Number(ans.q1)||0) + (Number(ans.q5)||0); // 2..10
+      const pill = document.getElementById('recapPill'); if(pill) pill.textContent = `${L.correctAnswer||'Correct Answer'} ${score10}/10`;
+      const name = document.getElementById('recapName'); if(name) name.textContent = 'Roxane';
+      const rl = document.getElementById('rankLabel'); if(rl) rl.textContent = L.rankLabel || rl.textContent;
+      const rv = document.getElementById('rankValue'); if(rv){ const total = (getResponses()||[]).length; rv.textContent = String(total).padStart(2,'0'); }
+      const ct = document.getElementById('congratsTitle'); if(ct) ct.textContent = L.congratsTitle || ct.textContent;
+      const cs = document.getElementById('congratsSub'); if(cs) cs.textContent = L.congratsSub || cs.textContent;
+    }
+
+    // (Statistics UI and charts removed on public index)
+
+    function q1Desc(val){
+      const arr = (i18n[currentLang] && i18n[currentLang].q1Scale) ? i18n[currentLang].q1Scale : [];
+      const n = Number(val);
+      if(Number.isFinite(n) && n>=1 && n<=5) return arr[n-1] || String(val);
+      return String(val ?? "");
+    }
+
+    function q5Desc(val){
+      const arr = (i18n[currentLang] && i18n[currentLang].q5Scale) ? i18n[currentLang].q5Scale : [];
+      const n = Number(val);
+      if(Number.isFinite(n) && n>=1 && n<=5) return arr[n-1] || String(val);
+      return String(val ?? "");
+    }
+
+    
+
+    
+
+    // ---------------------------
+    // Event bindings
+    // ---------------------------
+    // Language toggle (both in-card and floating button)
+    ["#btnLang","#btnLangFloat"].forEach(sel=>{
+      const el = document.querySelector(sel);
+      if(el){
+        el.addEventListener("click", ()=>{
+          currentLang = currentLang === "fr" ? "ar" : "fr";
+          localStorage.setItem("surveyLang", currentLang);
+          applyLanguage();
+        });
+      }
+    });
+
+    // Dedicated Darija switch button
+    const btnDarija = document.getElementById('btnDarija');
+    if(btnDarija){
+      btnDarija.addEventListener('click', ()=>{
+        currentLang = 'ma';
+        localStorage.setItem('surveyLang', currentLang);
+        applyLanguage();
+      });
+    }
+
+    // removed landing start handler
+
+    $("#selectLanguage").addEventListener("change", (e)=>{
+      currentLang = e.target.value;
+      localStorage.setItem("surveyLang", currentLang);
+      applyLanguage();
+    });
+
+    $$('input[name="gender"]').forEach(r=>{
+      r.addEventListener("change", ()=>{ /* stored with each response */ });
+    });
+
+    // Update progress and nav on any form radio click
+    $$("input[name=\"q1\"],input[name=\"q2\"],input[name=\"q3\"],input[name=\"q4\"],input[name=\"q5\"]").forEach(r=>{
+      r.addEventListener("change", ()=>{ updateProgress(); updateNavDisabled(); });
+    });
+
+    $("#btnStart").addEventListener("click", ()=>{
+      // Ensure language and gender chosen
+      if(!currentLang){ alert(t("valLanguage")); return; }
+      if(!getSelectedGender()){ alert(t("valGender")); return; }
+      currentIndex = 0;
+      show(views.form);
+      views.form.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+
+    $("#btnBackHome").addEventListener("click", ()=>{
+      show(views.home);
+    });
+
+    $("#btnPrev").addEventListener("click", ()=>{
+      if(currentIndex>0){ currentIndex--; showQuestion(currentIndex); }
+    });
+
+    $("#btnSubmit").addEventListener("click", async ()=>{
+      const qName = questionOrder[currentIndex];
+      if(!getCheckedValue(qName)) { updateNavDisabled(); return; }
+      const isLast = currentIndex === questionOrder.length-1;
+      if(!isLast){
+        currentIndex++;
+        showQuestion(currentIndex);
+        return;
+      }
+      // Last question -> full validation then submit
+      if(!validateBeforeSubmit()) return;
+      const ans = getFormData();
+      let ok = false;
+      try{
+        const resp = await fetch(API_BASE + '/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ans),
+          keepalive: true
+        });
+        ok = resp.ok;
+      }catch(_){ ok = false; }
+      if(!ok){ alert("Échec de l'envoi au serveur. Veuillez réessayer."); return; }
+      // Redirect to separate result page
+      window.location.href = 'result.html';
+    });
+
+    $("#btnAnother").addEventListener("click", ()=>{
+      clearForm();
+      show(views.home);
+    });
+
+    const btnFormBack = document.getElementById('btnFormBack');
+    if(btnFormBack){
+      btnFormBack.addEventListener('click', ()=>{ show(views.home); });
+    }
+
+    
+
+    // ---------------------------
+    // Init
+    // ---------------------------
+    function init(){
+      // Restore language and reflect UI
+      setDirByLang(currentLang);
+      applyLanguage();
+      buildStepDots();
+      // Start with only the first question visible in form view (if opened by default)
+      showQuestion(0);
+      show(views.home);
+    }
+    init();
+    window.addEventListener('load', function(){
+      try{
+        var style=document.createElement('style');
+        style.textContent='body{display:block!important;align-items:initial!important;justify-content:initial!important;min-height:auto!important} .device{display:none!important}';
+        document.head.appendChild(style);
+        document.querySelectorAll('.device').forEach(function(el){ if(el && el.parentElement){ el.parentElement.removeChild(el); } });
+      }catch(_){ }
+    });
+  </script>
+</body>
+</html>

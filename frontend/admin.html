@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - Quiz</title>
+  <link rel="icon" type="image/svg+xml" href="icons/qna.svg" />
+  <link rel="icon" type="image/png" href="icons/qna.png" />
+  <link rel="apple-touch-icon" href="icons/qna.png" />
+  <meta name="theme-color" content="#0064C8" />
+  <style>
+    :root{
+      --bg:#E6F4FE;           /* light background */
+      --text:#002857;         /* primary text */
+      --muted:#0064C8;        /* muted/secondary text */
+      --card:#ffffff;
+      --border:#E0E0E0;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --brand:#0064C8;        /* primary brand */
+      --brand-700:#002857;    /* darker brand for shadows */
+      --blue:#00B2FF;         /* accent */
+      --accent:#FF7514;       /* highlight */
+      --surface-50:#E6F4FE;   /* soft surface */
+      --chart-h:300px;
+    }
+    *{box-sizing:border-box}
+    html,body{ height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto }
+    html{ scrollbar-gutter: stable }
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text)}
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--brand)}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:14px}
+    /* Enhanced select styling */
+    .select{
+      -webkit-appearance:none; appearance:none;
+      background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center/14px 14px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 36px 10px 12px;
+      font:inherit; color:inherit;
+      width:100%;
+      box-shadow:0 1px 0 rgba(0,0,0,.02);
+      transition:border-color .15s ease, box-shadow .15s ease;
+      cursor:pointer;
+    }
+    .select:hover{ border-color:#cfe3ef }
+    .select:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(78,168,222,.25) }
+    .select:disabled{ opacity:.6; cursor:not-allowed }
+    .card.small{padding:10px}
+    /* Two charts side-by-side on medium+, stacked on small */
+    
+    .chartsRow{display:grid;gap:12px;grid-template-columns:1fr;contain:layout paint}
+    @media(min-width:720px){ .chartsRow{grid-template-columns:1fr 1fr} }
+    @media(min-width:1080px){ .chartsRow{grid-template-columns:1fr 1fr 1fr} }
+    .chartsRow canvas{ display:block; width:100%; height:var(--chart-h) !important }
+    .chart-title{ text-align:center; font-weight:700; color:var(--text); margin:0 0 8px }
+    @media(max-width:719px){ :root{ --chart-h:260px } }
+    button{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:10px 12px;font-weight:600;box-shadow:0 2px 0 var(--brand-700);cursor:pointer}
+    button.ghost{background:var(--surface-50);color:var(--brand);border:1px solid #E6F4FE;box-shadow:none}
+    button.danger{background:var(--accent);box-shadow:0 2px 0 #c85e10}
+    button.blue{background:var(--blue);box-shadow:0 2px 0 #0064C8}
+    button:disabled{opacity:.6}
+    .grid{display:grid;gap:12px}
+    .grid.sidebar{align-items:start;align-content:start}
+    /* Make By Gender cards slightly wider */
+    #byGender{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    @media(min-width:960px){ .grid.cols-2{grid-template-columns:1fr 256px} }
+    .kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+    .kpi{display:flex;flex-direction:column;gap:8px}
+    .kpi .v{font-size:1.6rem;font-weight:800}
+    .progress-bar{width:100%;height:8px;background:#E0E0E0;border-radius:999px;overflow:hidden;margin-top:4px}
+    .progress-fill{height:100%;border-radius:999px;transition:width 0.6s ease;background:linear-gradient(90deg,#0064C8,#00B2FF)}
+    .progress-fill.female{background:linear-gradient(90deg,#FF7514,#FFB380)}
+    .progress-fill.male{background:linear-gradient(90deg,#002857,#0064C8)}
+    .badge-count{display:inline-block;background:#0064C8;color:#fff;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:700;margin-left:6px}
+    .responses-breakdown{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .response-item{display:grid;grid-template-columns:140px 1fr 50px;align-items:center;gap:8px;font-size:0.85rem}
+    .response-label{color:var(--text);font-weight:500}
+    .mini-progress-bar{height:8px;background:linear-gradient(180deg,#f3f4f6 0%, #e5e7eb 100%);border:1px solid #e5e7eb;border-radius:999px;overflow:hidden}
+    .mini-progress-fill{height:100%;background:linear-gradient(90deg,#60a5fa,#3b82f6);border-radius:999px;transition:width 0.6s ease;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
+    .mini-progress-fill.red{background:linear-gradient(90deg,#ff6b6b,#ff8e7f)}
+    .mini-progress-fill.amber{background:linear-gradient(90deg,#fcd34d,#f59e0b)}
+    .mini-progress-fill.slate{background:linear-gradient(90deg,#cbd5e1,#94a3b8)}
+    .mini-progress-fill.teal{background:linear-gradient(90deg,#34d399,#10b981)}
+    .mini-progress-fill.blue{background:linear-gradient(90deg,#60a5fa,#3b82f6)}
+    .response-percent{color:var(--muted);font-weight:600;text-align:right}
+    .icon16 {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background-color: currentColor;
+    }
+
+    .icon-blue {
+      color: #007bff;
+    }
+    .icon-female {
+      -webkit-mask-image: url('icons/woman-avatar.png');
+      mask-image: url('icons/woman-avatar.png');
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+    }
+
+    .icon-male {
+      -webkit-mask-image: url('icons/male-user.png');
+      mask-image: url('icons/male-user.png');
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+    }
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--border);padding:8px 10px;text-align:start}
+    th{background:#f1f7fb}
+    .muted{color:var(--muted)}
+    /* Login (split card with image) */
+    .login-wrap{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;background:#E6F4FE}
+    .login-card{width:100%;max-width:900px;border-radius:12px;overflow:hidden;box-shadow:0 16px 36px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);background:transparent}
+    .auth-grid{display:grid;grid-template-columns:minmax(320px,1fr) 450px;background:var(--card)}
+    @media(max-width:860px){ .auth-grid{grid-template-columns:1fr} }
+    .auth-hero{background:url('background.webp') center/cover no-repeat;min-height:340px}
+    .auth-pane{padding:28px 26px;background:var(--card)}
+    .auth-pane h1{margin:0 0 8px;font-size:1.2rem;line-height:1.2;color:var(--text);text-align:center}
+    .auth-pane .sub{color:var(--muted);text-align:center;margin-bottom:16px}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    .field label{font-size:.88rem;color:var(--text);font-weight:600}
+    input[type="text"],input[type="password"]{padding:12px 14px;border:1px solid var(--border);border-radius:999px;background:#F7FBFF;width:100%}
+    input[type="text"]:focus,input[type="password"]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,178,255,.22)}
+    .remember{display:flex;align-items:center;gap:8px;margin:6px 0 14px;color:var(--muted);font-size:.9rem}
+    .auth-options{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:6px 0 14px;color:var(--muted);font-size:.9rem}
+    .auth-options .remember{margin:0}
+    .login-actions{display:flex;justify-content:center}
+    .btn-pill{border-radius:9999px;padding:12px 20px;min-width:180px}
+    /* Exact pill login button style */
+    #btnLogin.btn-pill{
+      width:100%;
+      padding:12px 14px;
+      background:linear-gradient(90deg,#002857 0%, #0064C8 100%);
+      color:#ffffff;
+      border:none;
+      border-radius:9999px;
+      box-shadow:inset 0 -2px 0 rgba(0,0,0,.15);
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    #btnLogin.btn-pill:hover{ background:linear-gradient(90deg,#003a73 0%, #00B2FF 100%) }
+    #btnLogin.btn-pill:focus{ outline:none; box-shadow:0 0 0 3px rgba(0,40,87,.25), inset 0 -2px 0 rgba(0,0,0,.15) }
+    #btnLogin.btn-pill:active{ box-shadow:inset 0 2px 0 rgba(0,0,0,.2) }
+    .divider{height:1px;width: 360px; background:#E0E0E0;border-radius:0;margin:16px auto 0}
+    footer.fixed-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      padding: 12px 0;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      z-index: 1000;
+    }
+    /* Print styles: keep colors and layout similar to screen */
+    @media print{
+      @page { margin: 12mm; }
+      body{ -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#ffffff !important }
+      #view-login{ display:none !important }
+      #view-dashboard{ display:block !important }
+      header .toolbar, #btnLogout, .fixed-bottom{ display:none !important }
+      .container{ max-width:1100px; padding:0 12px }
+      .chartsRow{ grid-template-columns:1fr !important }
+      .card{ box-shadow:none !important; border:1px solid #cfd8e3; break-inside: avoid; page-break-inside: avoid }
+      canvas{ background:#ffffff !important }
+    }
+  </style>
+</head>
+<body>
+  <div id="view-login" class="login-wrap">
+    <div class="login-card">
+      <div class="auth-grid">
+        <div class="auth-hero" aria-hidden="true"></div>
+        <div class="auth-pane">
+          <h1>Welcome to Staff Engagement and Recognition Stats</h1>
+          <div class="field"><label>Username</label><input id="loginUser" type="text" placeholder="admin" autocomplete="username"/></div>
+          <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••" autocomplete="current-password"/></div>
+          <div class="auth-options">
+            <div class="remember"><input id="rememberMe" type="checkbox"/><label for="rememberMe">Remember me</label></div>
+            <div class="remember"><input id="showPass" type="checkbox"/><label for="showPass">Show password</label></div>
+          </div>
+          <div class="login-actions"><button id="btnLogin" class="btn-pill">Login</button></div>
+          <div class="divider"></div>
+        </div>
+      </div>
+    </div>
+    <footer class="fixed-bottom">© 2025 By El Hansali Fatima-ezzahrae</footer>
+  </div>
+
+  <div id="view-dashboard" class="container" style="display:none">
+    <header>
+      <div>
+        <div class="brand" style="margin-bottom:4px">Statistics — Quiz Admin</div>
+        <div class="muted" id="kpiSubtitle">Total responses: 0</div>
+      </div>
+      <div class="toolbar">
+        <button id="btnExport" class="ghost">Export Excel</button>
+        <button id="btnPrint" class="ghost">Print</button>
+        <button type="button" class="danger" onclick="window.location.reload();">
+          Reset
+        </button>
+
+        <button id="btnLogout" class="blue">Logout</button>
+        <span id="dataSourceBadge" class="muted" style="padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-50)">Source: —</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="grid">
+        <div class="kpis">
+          <div class="card kpi">
+            <div class="muted">Total Responses</div>
+            <div id="kpiTotal" class="v">0</div>
+          </div>
+          <div class="card kpi">
+            <div class="muted" style="display:flex;align-items:center;gap:6px">
+              <span class="icon16 icon-blue icon-female" aria-hidden="true"></span>
+              <span>Females</span>
+            </div>
+            <div id="kpiFemales" class="v">0</div>
+          </div>
+          <div class="card kpi">
+            <div class="muted" style="display:flex;align-items:center;gap:6px">
+              <span class="icon16 icon-blue icon-male" aria-hidden="true"></span>
+              <span>Males</span>
+            </div>
+            <div id="kpiMales" class="v">0</div>
+          </div>
+        </div>
+        <div class="chartsRow">
+          <div class="card kpi">
+            <div class="muted">Satisfaction au travail </div>
+            <div class="responses-breakdown">
+              <div class="response-item">
+                <span class="response-label">Très insatisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="satBar1" style="width:0%"></div></div>
+                <span class="response-percent" id="satPercent1">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Insatisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="satBar2" style="width:0%"></div></div>
+                <span class="response-percent" id="satPercent2">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Neutre / Moyen(ne)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="satBar3" style="width:0%"></div></div>
+                <span class="response-percent" id="satPercent3">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Satisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="satBar4" style="width:0%"></div></div>
+                <span class="response-percent" id="satPercent4">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Très satisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="satBar5" style="width:0%"></div></div>
+                <span class="response-percent" id="satPercent5">0%</span>
+              </div>
+            </div>
+          </div>
+          <div class="card kpi">
+            <div class="muted">Reconnaissance et motivation </div>
+            <div class="responses-breakdown">
+              <div class="response-item">
+                <span class="response-label">Toujours</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="recBar1" style="width:0%"></div></div>
+                <span class="response-percent" id="recPercent1">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Souvent</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="recBar2" style="width:0%"></div></div>
+                <span class="response-percent" id="recPercent2">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Rarement</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="recBar3" style="width:0%"></div></div>
+                <span class="response-percent" id="recPercent3">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Jamais</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="recBar4" style="width:0%"></div></div>
+                <span class="response-percent" id="recPercent4">0%</span>
+              </div>
+            </div>
+          </div>
+          <div class="card kpi">
+            <div class="muted">Évolution de carrière </div>
+            <div class="responses-breakdown">
+              <div class="response-item">
+                <span class="response-label">Oui</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="carBar1" style="width:0%"></div></div>
+                <span class="response-percent" id="carPercent1">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Non</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="carBar2" style="width:0%"></div></div>
+                <span class="response-percent" id="carPercent2">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Partiellement</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="carBar3" style="width:0%"></div></div>
+                <span class="response-percent" id="carPercent3">0%</span>
+              </div>
+            </div>
+          </div>
+          <div class="card kpi">
+            <div class="muted">Communication et feedback </div>
+            <div class="responses-breakdown">
+              <div class="response-item">
+                <span class="response-label">Toujours</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="comBar1" style="width:0%"></div></div>
+                <span class="response-percent" id="comPercent1">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Souvent</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="comBar2" style="width:0%"></div></div>
+                <span class="response-percent" id="comPercent2">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Rarement</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="comBar3" style="width:0%"></div></div>
+                <span class="response-percent" id="comPercent3">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Jamais</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="comBar4" style="width:0%"></div></div>
+                <span class="response-percent" id="comPercent4">0%</span>
+              </div>
+            </div>
+          </div>
+          <div class="card kpi">
+            <div class="muted">Installations et environnement </div>
+            <div class="responses-breakdown">
+              <div class="response-item">
+                <span class="response-label">Très insatisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="insBar1" style="width:0%"></div></div>
+                <span class="response-percent" id="insPercent1">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Insatisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="insBar2" style="width:0%"></div></div>
+                <span class="response-percent" id="insPercent2">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Neutre / Moyen(ne)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="insBar3" style="width:0%"></div></div>
+                <span class="response-percent" id="insPercent3">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Satisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="insBar4" style="width:0%"></div></div>
+                <span class="response-percent" id="insPercent4">0%</span>
+              </div>
+              <div class="response-item">
+                <span class="response-label">Très satisfait(e)</span>
+                <div class="mini-progress-bar"><div class="mini-progress-fill" id="insBar5" style="width:0%"></div></div>
+                <span class="response-percent" id="insPercent5">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="fixed-bottom">© 2025 By El Hansali Fatima-ezzahrae</footer> 
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const USE_INFOGRAPHIC = true; // set to false to disable custom plugin quickly
+    // ---- Auth (Demo) ----
+    // In production: replace with secure server-side auth + JWT/cookies; guard endpoints; serve dashboard behind auth middleware.
+    const TOKEN_KEY = 'adminToken';
+    const DEMO_USER = 'Mohammed-ghaleb.Al-kourashi@leoni.com';
+    const DEMO_PASS = 'Ghaleb@2525';
+
+    const vLogin = document.getElementById('view-login');
+    const vDash = document.getElementById('view-dashboard');
+
+    const isAuthed = () => sessionStorage.getItem(TOKEN_KEY) === 'ok';
+    function updateRoute(){ vLogin.style.display = isAuthed()? 'none':'flex'; vDash.style.display = isAuthed()? 'block':'none'; if(isAuthed()){ loadAndRender(); } }
+
+    document.getElementById('btnLogin').addEventListener('click', ()=>{
+      const u = document.getElementById('loginUser').value.trim();
+      const p = document.getElementById('loginPass').value.trim();
+      // DEMO: local check. Replace with POST /auth/login
+      if(u===DEMO_USER && p===DEMO_PASS){ sessionStorage.setItem(TOKEN_KEY,'ok'); updateRoute(); }
+      else { alert('Invalid credentials (demo uses admin/admin)'); }
+    });
+    document.getElementById('btnLogout').addEventListener('click', ()=>{ sessionStorage.removeItem(TOKEN_KEY); updateRoute(); });
+    const sp=document.getElementById('showPass'); if(sp){ sp.addEventListener('change', ()=>{ const ip=document.getElementById('loginPass'); if(ip){ ip.type = sp.checked ? 'text' : 'password'; } }); }
+
+    // ---- Data loading ----
+    // Determine API base: when opened via file://, use localhost server; when served over http(s), use same origin
+    const API_BASE = (location.protocol === 'http:' || location.protocol === 'https:') ? '' : 'http://localhost:3000';
+    let originalRows = [];
+    let filteredRows = [];
+
+    async function fetchResponses(){
+      // 1) Try API first (supports file:// by using API_BASE)
+      try{
+        const res = await fetch(API_BASE + '/api/quiz-responses', { headers:{'Accept':'application/json'} });
+        if(res.ok){ const js = await res.json(); return { rows: normalizeApi(js), source: 'API' }; }
+      }catch(_){ /* ignore and fall back */ }
+      // 2) Fallback: localStorage from index.html
+      try{
+        const raw = JSON.parse(localStorage.getItem('surveyResponses')||'[]');
+        if(Array.isArray(raw) && raw.length){ return { rows: normalizeLocal(raw), source: 'Local' }; }
+      }catch(_){ }
+      return { rows: mockData(), source: 'Demo' };
+    }
+
+    function normalizeApi(arr){
+      const L = getLangPack(localStorage.getItem('surveyLang')||'fr');
+      const mapRec = { always: L.always, often: L.often, rarely: L.rarely, never: L.never };
+      return arr.map(x=>({
+        id: x.id,
+        gender: mapGenderLabel(x.gender),
+        satisfaction: Number(x.q1)||0,
+        installations: Number(x.q5)||0,
+        recognition: mapRec[x.q2] || x.q2,
+        answers: [Number(x.q1)||0, labelToNum(x.q2), labelToNum(x.q3), labelToNum(x.q4), Number(x.q5)||0],
+        createdAt: (x.ts||'').slice(0,10)
+      }));
+      function labelToNum(v){ const m={always:5,often:4,rarely:2,never:1,yes:1,no:0,partial:0.5}; return m[v]??0; }
+    }
+
+    function normalizeLocal(arr){
+      // index.html format: {lang,gender,q1,q2,q3,q4,q5,ts}
+      const L = getLangPack(localStorage.getItem('surveyLang')||'fr');
+      const mapRec = { always: L.always, often: L.often, rarely: L.rarely, never: L.never };
+      return arr.map((d,i)=>({
+        id: i+1,
+        gender: d.gender==='male'? (L.gMale||'Homme') : (d.gender==='female'? (L.gFemale||'Femme') : 'Other'),
+        satisfaction: Number(d.q1)||0,
+        installations: Number(d.q5)||0,
+        recognition: mapRec[d.q2]||d.q2,
+        answers: [Number(d.q1)||0, labelToNum(d.q2), labelToNum(d.q3), labelToNum(d.q4), Number(d.q5)||0],
+        createdAt: (d.ts||'').slice(0,10)
+      }));
+      function labelToNum(v){ const m={always:5,often:4,rarely:2,never:1,yes:1,no:0,partial:0.5}; return m[v]??0; }
+    }
+
+    function mockData(){
+      const today = new Date().toISOString().slice(0,10);
+      const recLabel = {5:'Toujours',4:'Souvent',2:'Rarement',1:'Jamais'};
+      const arr = [];
+      for(let i=0;i<24;i++){
+        const satisfaction = [5,5,5,4,4,3,2,1][i%8];
+        const installations = [5,4,4,3,3,2,2,1][i%8];
+        const q2n = [5,4,2,1][i%4];          // always, often, rarely, never
+        const q3n = [1,0,0.5][i%3];           // yes, no, partial
+        const q4n = [5,4,2,1][(i+1)%4];       // shift for variation
+        arr.push({
+          id: i+1,
+          gender: i%2===0? 'Male':'Female',
+          answers: [satisfaction, q2n, q3n, q4n, installations],
+          satisfaction,
+          installations,
+          recognition: recLabel[q2n],
+          createdAt: today
+        });
+      }
+      return arr;
+    }
+
+    function mapGenderLabel(g){
+      if(!g) return '';
+      const raw = String(g).trim();
+      const s = raw.toLowerCase();
+      // Handle Female first to avoid 'female' matching 'male'
+      if (s === 'female' || s.startsWith('f') || s.includes('fem') || raw === 'أنثى') return 'Female';
+      if (s === 'male' || s.startsWith('m') || s.includes('hom') || raw === 'ذكر') return 'Male';
+      return raw;
+    }
+
+    function getLangPack(lang){
+      const i18n = {
+        fr:{ gMale:'Homme', gFemale:'Femme', always:'Toujours', often:'Souvent', rarely:'Rarement', never:'Jamais' },
+        ar:{ gMale:'ذكر', gFemale:'أنثى', always:'دائماً', often:'غالباً', rarely:'نادراً', never:'أبداً' }
+      };
+      return i18n[lang]||i18n.fr;
+    }
+
+    // ---- Rendering ----
+    const arrowBarPlugin = {
+      id:'arrowBar',
+      beforeDatasetsDraw(chart, args, opts){
+        const ctx = chart.ctx; const xS = chart.scales && chart.scales.x; if(!xS || !isFinite(xS.left) || !isFinite(xS.right)) return;
+        const meta = chart.getDatasetMeta(0); if(!meta || !meta.data) return;
+        const ds0 = chart.data.datasets && chart.data.datasets[0];
+        const track = (opts&&opts.trackColor)||'#EEF7FE'; const r = (opts&&opts.trackRadius)||10;
+        const drawLabels = !!(opts&&opts.labelLeft);
+        const labelW = (opts&&opts.labelWidth)||120; const labelText=(opts&&opts.labelText)||'#ffffff';
+        const labelFont=(opts&&opts.labelFont)||'700 10px system-ui,Segoe UI,Arial';
+        const labelSubFont=(opts&&opts.labelSubFont)||'600 10px system-ui,Segoe UI,Arial';
+        const gap = 10;
+        ctx.save();
+        meta.data.forEach((bar, i)=>{
+          const gp = (b)=> b && typeof b.getProps==='function'? b.getProps(['y','height'], true) : { y: b.y, height: b.height };
+          const p = gp(bar); const y = p.y; const h = p.height||24; const top=y-h/2; const left=xS.left; const w=xS.right-left;
+          // track
+          try{ roundRect(ctx,left,top,w,h,r); ctx.fillStyle=track; ctx.fill(); }catch(_){ /* noop */ }
+          // left label badge
+          if(drawLabels){
+            const labels = chart.data.labels||[]; const raw = String(labels[i]||''); const parts = raw.split(' / ');
+            const lRight = left - gap; const lLeft = lRight - labelW;
+            // choose label bg based on base color of this row
+            let baseCol = '#00B2FF';
+            if(ds0 && ds0.barBaseColors){ baseCol = ds0.barBaseColors[i % ds0.barBaseColors.length] || baseCol; }
+            const labelBg = lighten(baseCol, .05);
+            try{
+              roundRect(ctx, lLeft, top, labelW, h, 8); ctx.fillStyle=labelBg; ctx.fill();
+              ctx.fillStyle=labelText; ctx.textBaseline='middle'; ctx.font=labelFont;
+              const tx = lLeft + 8;
+              if(parts.length>1){ ctx.fillText(parts[0], tx, y-6); ctx.font=labelSubFont; ctx.fillText(parts[1], tx, y+6); }
+              else { ctx.fillText(raw, tx, y); }
+            }catch(_){ /* noop */ }
+          }
+        });
+        ctx.restore();
+      },
+      afterDatasetsDraw(chart, args, opts){
+        const ctx = chart.ctx; const xS = chart.scales && chart.scales.x; const meta0 = chart.getDatasetMeta(0); if(!xS || !isFinite(xS.left) || !isFinite(xS.right) || !meta0) return;
+        const aw = (opts&&opts.arrowWidth)||18; const font = (opts&&opts.font)||'600 12px system-ui,Segoe UI,Arial';
+        ctx.save(); ctx.textBaseline='middle';
+        chart.data.datasets.forEach((ds, di)=>{
+          const meta = chart.getDatasetMeta(di);
+          meta.data.forEach((bar, i)=>{
+            const gp = (b)=> b && typeof b.getProps==='function'? b.getProps(['x','y','base','height'], true) : { x: b.x, y:b.y, base:b.base, height:b.height };
+            const p = gp(bar);
+            const left = Math.min(p.base ?? 0, p.x ?? 0); const right = Math.max(p.base ?? 0, p.x ?? 0);
+            const y=p.y; const h=p.height||24; const top=y-h/2; const bottom=y+h/2;
+            const baseCol = (ds.barBaseColors && ds.barBaseColors[i % ds.barBaseColors.length]) || '#0064C8';
+            const color = Array.isArray(ds.backgroundColor)? ds.backgroundColor[i] : (ds.backgroundColor||baseCol);
+            // arrow tip
+            try{
+              const tipX = Math.min(right+aw, xS.right);
+              ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(right, top); ctx.lineTo(tipX, y); ctx.lineTo(right, bottom); ctx.closePath(); ctx.fill();
+            }catch(_){ /* noop */ }
+            // percentage pill
+            const val = Number(ds.data[i])||0; const label = Math.round(val)+'%'; ctx.font=font;
+            const padX=10; const tw = ctx.measureText(label).width; const pillW = tw + padX*2; const pillH = Math.min(24, h);
+            let pillRight = Math.min(right-6, xS.right-6); let pillLeft = pillRight - pillW; if(pillLeft < left+6){ pillLeft = left+6; pillRight = pillLeft + pillW; }
+            const pillTop = y - pillH/2;
+            // gradient pill fill using base color
+            try{
+              const grad = ctx.createLinearGradient(pillLeft, 0, pillRight, 0); grad.addColorStop(0, lighten(baseCol,.1)); grad.addColorStop(1, darken(baseCol,.05));
+              ctx.save(); ctx.shadowColor='rgba(0,0,0,.18)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
+              roundRect(ctx, pillLeft, pillTop, pillW, pillH, pillH/2); ctx.fillStyle = grad; ctx.fill(); ctx.restore();
+              ctx.fillStyle = '#ffffff'; ctx.textAlign='center'; ctx.fillText(label, (pillLeft+pillRight)/2, y);
+            }catch(_){ /* noop */ }
+            ctx.textAlign='start';
+          });
+        });
+        ctx.restore();
+      }
+    };
+    Chart.register(arrowBarPlugin);
+    let charts=[];
+    function destroyCharts(){ charts.forEach(c=>{try{c.destroy()}catch(_){}}); charts=[]; }
+
+    async function loadAndRender(){
+      const { rows, source } = await fetchResponses();
+      originalRows = rows;
+      filteredRows = originalRows.slice();
+      const total = rows.length;
+      const avg = (a)=> a.length? (a.reduce((x,y)=>x+y,0)/a.length):0;
+      const avgSat = avg(filteredRows.map(r=>r.satisfaction));
+      const avgInst = avg(filteredRows.map(r=>r.installations));
+      const maleCount = filteredRows.filter(r=> mapGenderLabel(r.gender)==='Male').length;
+      const femaleCount = filteredRows.filter(r=> mapGenderLabel(r.gender)==='Female').length;
+      
+      // KPIs
+      document.getElementById('kpiTotal').textContent = filteredRows.length;
+      const kf = document.getElementById('kpiFemales'); if(kf) kf.textContent = femaleCount;
+      const km = document.getElementById('kpiMales'); if(km) km.textContent = maleCount;
+      
+      const lu = document.getElementById('lastUpdated'); if(lu){ lu.textContent = 'Updated: ' + new Date().toLocaleString(); }
+      const sub = document.getElementById('kpiSubtitle');
+      if(sub){ sub.innerHTML = '<strong>Leoni 2025</strong>'; }
+      const badge = document.getElementById('dataSourceBadge'); if(badge) badge.textContent = 'Source: ' + source;
+      
+      // Count responses for each question
+      const countQ1 = filteredRows.filter(r => r.satisfaction || (Array.isArray(r.answers) && r.answers[0])).length;
+      const countQ2 = filteredRows.filter(r => Array.isArray(r.answers) && r.answers[1]).length;
+      const countQ3 = filteredRows.filter(r => Array.isArray(r.answers) && typeof r.answers[2] !== 'undefined').length;
+      const countQ4 = filteredRows.filter(r => Array.isArray(r.answers) && r.answers[3]).length;
+      const countQ5 = filteredRows.filter(r => r.installations || (Array.isArray(r.answers) && r.answers[4])).length;
+      
+      // Update count badges
+      if(document.getElementById('countQ1')) document.getElementById('countQ1').textContent = countQ1;
+      if(document.getElementById('countQ2')) document.getElementById('countQ2').textContent = countQ2;
+      if(document.getElementById('countQ3')) document.getElementById('countQ3').textContent = countQ3;
+      if(document.getElementById('countQ4')) document.getElementById('countQ4').textContent = countQ4;
+      if(document.getElementById('countQ5')) document.getElementById('countQ5').textContent = countQ5;
+      
+      // Q1: Satisfaction au travail (1-5 scale)
+      const q1Counts = [1,2,3,4,5].map(v => filteredRows.filter(r => Number(r.satisfaction || r.answers[0])===v).length);
+      const q1Total = q1Counts.reduce((a,b)=>a+b,0) || 1;
+      const q1ColorSeq = ['red','amber','slate','teal','blue'];
+      q1Counts.forEach((count, i) => {
+        const percent = (count / q1Total) * 100;
+        const barEl = document.getElementById(`satBar${i+1}`);
+        const percentEl = document.getElementById(`satPercent${i+1}`);
+        if(percentEl) percentEl.textContent = Math.round(percent) + '%';
+        if(barEl){ ['red','amber','slate','teal','blue'].forEach(c=>barEl.classList.remove(c)); barEl.classList.add(q1ColorSeq[i%q1ColorSeq.length]); }
+        setTimeout(() => { if(barEl) barEl.style.width = percent + '%'; }, 100);
+      });
+      
+      // Q2: Reconnaissance (5=always, 4=often, 2=rarely, 1=never)
+      const q2Vals = filteredRows.map(r => Array.isArray(r.answers) ? Number(r.answers[1]) : 0);
+      const q2Counts = [5,4,2,1].map(v => q2Vals.filter(x => x===v).length);
+      const q2Total = q2Counts.reduce((a,b)=>a+b,0) || 1;
+      const q2ColorSeq = ['teal','amber','slate','red'];
+      q2Counts.forEach((count, i) => {
+        const percent = (count / q2Total) * 100;
+        const barEl = document.getElementById(`recBar${i+1}`);
+        const percentEl = document.getElementById(`recPercent${i+1}`);
+        if(percentEl) percentEl.textContent = Math.round(percent) + '%';
+        if(barEl){ ['red','amber','slate','teal','blue'].forEach(c=>barEl.classList.remove(c)); barEl.classList.add(q2ColorSeq[i%q2ColorSeq.length]); }
+        setTimeout(() => { if(barEl) barEl.style.width = percent + '%'; }, 100);
+      });
+      
+      // Q3: Évolution de carrière (1=yes, 0=no, 0.5=partial)
+      const q3Vals = filteredRows.map(r => Array.isArray(r.answers) ? Number(r.answers[2]) : 0);
+      const q3Counts = [1,0,0.5].map(v => q3Vals.filter(x => x===v).length);
+      const q3Total = q3Counts.reduce((a,b)=>a+b,0) || 1;
+      const q3ColorSeq = ['teal','red','amber'];
+      q3Counts.forEach((count, i) => {
+        const percent = (count / q3Total) * 100;
+        const barEl = document.getElementById(`carBar${i+1}`);
+        const percentEl = document.getElementById(`carPercent${i+1}`);
+        if(percentEl) percentEl.textContent = Math.round(percent) + '%';
+        if(barEl){ ['red','amber','slate','teal','blue'].forEach(c=>barEl.classList.remove(c)); barEl.classList.add(q3ColorSeq[i%q3ColorSeq.length]); }
+        setTimeout(() => { if(barEl) barEl.style.width = percent + '%'; }, 100);
+      });
+      
+      // Q4: Communication (5=always, 4=often, 2=rarely, 1=never)
+      const q4Vals = filteredRows.map(r => Array.isArray(r.answers) ? Number(r.answers[3]) : 0);
+      const q4Counts = [5,4,2,1].map(v => q4Vals.filter(x => x===v).length);
+      const q4Total = q4Counts.reduce((a,b)=>a+b,0) || 1;
+      const q4ColorSeq = ['teal','amber','slate','red'];
+      q4Counts.forEach((count, i) => {
+        const percent = (count / q4Total) * 100;
+        const barEl = document.getElementById(`comBar${i+1}`);
+        const percentEl = document.getElementById(`comPercent${i+1}`);
+        if(percentEl) percentEl.textContent = Math.round(percent) + '%';
+        if(barEl){ ['red','amber','slate','teal','blue'].forEach(c=>barEl.classList.remove(c)); barEl.classList.add(q4ColorSeq[i%q4ColorSeq.length]); }
+        setTimeout(() => { if(barEl) barEl.style.width = percent + '%'; }, 100);
+      });
+      
+      // Q5: Installations (1-5 scale)
+      const q5Counts = [1,2,3,4,5].map(v => filteredRows.filter(r => Number(r.installations || r.answers[4])===v).length);
+      const q5Total = q5Counts.reduce((a,b)=>a+b,0) || 1;
+      const q5ColorSeq = ['red','amber','slate','teal','blue'];
+      q5Counts.forEach((count, i) => {
+        const percent = (count / q5Total) * 100;
+        const barEl = document.getElementById(`insBar${i+1}`);
+        const percentEl = document.getElementById(`insPercent${i+1}`);
+        if(percentEl) percentEl.textContent = Math.round(percent) + '%';
+        if(barEl){ ['red','amber','slate','teal','blue'].forEach(c=>barEl.classList.remove(c)); barEl.classList.add(q5ColorSeq[i%q5ColorSeq.length]); }
+        setTimeout(() => { if(barEl) barEl.style.width = percent + '%'; }, 100);
+      });
+      
+      // Charts
+      destroyCharts();
+      const totalN = filteredRows.length;
+      const toPerc = (c)=> totalN ? (c*100/totalN) : 0;
+
+      const labelsQ1Q5 = [
+        'Très insatisfait(e)',
+        'Insatisfait(e)',
+        'Neutre / Moyen(ne)',
+        'Satisfait(e)',
+        'Très satisfait(e)'
+      ];
+      const labelsFreq = [
+        'Toujours',
+        'Souvent',
+        'Rarement',
+        'Jamais'
+      ];
+      const labelsYesNoPartial = [
+        'Oui',
+        'Non',
+        'Partiellement'
+      ];
+
+      const colors5 = ['#002857','#0064C8','#00B2FF','#FF7514','#E0E0E0'];
+      const colors4 = ['#0064C8','#00B2FF','#FF7514','#002857'];
+      const colors3 = ['#0064C8','#002857','#FF7514'];
+
+      function hexToRgb(hex){
+        const s = String(hex||'').replace('#','');
+        const n = parseInt(s.length===3? s.split('').map(c=>c+c).join('') : s, 16);
+        return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+      }
+      function lighten(hex, p){ const {r,g,b}=hexToRgb(hex); const mix=v=>Math.round(v+(255-v)*p); return `rgb(${mix(r)},${mix(g)},${mix(b)})`; }
+      function darken(hex, p){ const {r,g,b}=hexToRgb(hex); const mix=v=>Math.round(v*(1-p)); return `rgb(${mix(r)},${mix(g)},${mix(b)})`; }
+      function roundRect(ctx,x,y,w,h,r){ const rr=Math.min(r, h/2, w/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.lineTo(x+w-rr,y); ctx.quadraticCurveTo(x+w,y,x+w,y+rr); ctx.lineTo(x+w,y+h-rr); ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h); ctx.lineTo(x+rr,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-rr); ctx.lineTo(x,y+rr); ctx.quadraticCurveTo(x,y,x+rr,y); ctx.closePath(); }
+      function makeGradient(ctx, xScale, base){ const g=ctx.createLinearGradient(xScale.left,0,xScale.right,0); g.addColorStop(0, lighten(base,.18)); g.addColorStop(1, base); return g; }
+
+      function makeBar(ctx, labels, data, colors){
+        return new Chart(ctx, {
+          type:'bar',
+          data:{ labels, datasets:[{ 
+            data,
+            // keep base colors for plugin use
+            barBaseColors: colors,
+            backgroundColor: (c)=>{
+              const base = colors[c.dataIndex % colors.length];
+              const chart = c.chart; if(!chart || !chart.chartArea) return base;
+              const xS = chart.scales && chart.scales.x; if(!xS || !isFinite(xS.left) || !isFinite(xS.right)) return base;
+              return makeGradient(chart.ctx, xS, base);
+            },
+            borderRadius:999, borderSkipped:false, barPercentage:0.7, categoryPercentage:0.86, maxBarThickness:32
+          }] },
+          options:{
+            responsive:true, maintainAspectRatio:false, animation:false, indexAxis:'y',
+            layout:{ padding:{ left:130, right:24, top:8, bottom:8 } },
+            scales:{
+              x:{ beginAtZero:true, suggestedMax:100, grid:{ display:false }, ticks:{ callback:(v)=> v+'%' } },
+              y:{ grid:{ display:false }, ticks:{ display:false } }
+            },
+            plugins:{
+              legend:{ display:false },
+              tooltip:{
+                callbacks:{
+                  label:(c)=>{ const v=(c.parsed && typeof c.parsed.x==='number')? c.parsed.x : (c.parsed && typeof c.parsed.y==='number') ? c.parsed.y : c.raw; return Math.round(Number(v)||0)+'%'; }
+                }
+              },
+              arrowBar: USE_INFOGRAPHIC ? { arrowWidth:18, trackColor:'#E0E0E0', trackRadius:12, labelLeft:true, labelWidth:140 } : false
+            }
+          }
+        });
+      }
+      function makePie(ctx, labels, data, colors){
+        return new Chart(ctx, {
+          type:'pie',
+          data:{ labels, datasets:[{ data, backgroundColor:colors }] },
+          options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ position:'bottom' }, tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${Number(c.raw||0).toFixed(1)}%` } } } }
+        });
+      }
+
+      // Charts removed - now using KPI cards with progress bars
+      
+      // Table removed: skip rendering if not present
+      const tbody = document.querySelector('#tbl tbody');
+      if(tbody){
+        tbody.innerHTML = filteredRows.map(r=>`<tr>
+          <td>${esc(r.id)}</td>
+          <td>${esc(r.gender)}</td>
+          <td>${esc(r.satisfaction)}</td>
+          <td>${esc(r.installations)}</td>
+          <td>${esc(r.recognition)}</td>
+          <td>${esc(Array.isArray(r.answers)? r.answers.join(' / '): '')}</td>
+          <td>${esc(r.createdAt)}</td>
+        </tr>`).join('');
+      }
+
+      // Buttons
+      document.getElementById('btnExport').onclick = ()=> exportExcelStyled(filteredRows);
+      document.getElementById('btnPrint').onclick = ()=> window.print();
+      // Filters removed
+    }
+
+    function loadAndRenderFrom(rows, source){
+      // reuse renderer with provided rows without re-fetching
+      const backupFetch = fetchResponses;
+      fetchResponses = async ()=>({ rows, source: source||'Custom' });
+      loadAndRender().finally(()=>{ fetchResponses = backupFetch; });
+    }
+
+    function countObj(arr){ const o={}; arr.forEach(v=>{o[v]=(o[v]||0)+1}); return o; }
+    function esc(s){ return String(s??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+    function exportCSV(rows){
+      const header = ['ID','Gender','Satisfaction','Installations','Recognition','Answers','Created'];
+      const data = [header].concat(rows.map(r=>[
+        r.id, r.gender, r.satisfaction, r.installations, r.recognition, (Array.isArray(r.answers)? r.answers.join(' / '): ''), r.createdAt
+      ]));
+      const csv = data.map(r=>r.map(v=>{const s=String(v??'');return /[",\n]/.test(s)? '"'+s.replace(/"/g,'""')+'"': s}).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='quiz_admin_export_'+Date.now()+'.csv'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    // Styled Excel export using HTML table (opens perfectly in Excel with borders/colors)
+    function exportExcelStyled(rows){
+      const header = ['ID','Gender','Satisfaction','Installations','Recognition','Answers','Created'];
+      const headHtml = header.map(h=>`<th>${esc(h)}</th>`).join('');
+      const bodyHtml = rows.map(r=>`<tr>
+        <td>${esc(r.id)}</td>
+        <td>${esc(r.gender)}</td>
+        <td>${esc(r.satisfaction)}</td>
+        <td>${esc(r.installations)}</td>
+        <td>${esc(r.recognition)}</td>
+        <td>${esc(Array.isArray(r.answers)? r.answers.join(' / '): '')}</td>
+        <td>${esc(r.createdAt)}</td>
+      </tr>`).join('');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+        table{border-collapse:collapse;font-family:Georgia, 'Times New Roman', Times, serif}
+        th,td{border:1px solid #b6c5d6;padding:6px 10px}
+        th{background:#eaf4ff;font-weight:700;text-align:center}
+        td{vertical-align:top}
+      </style></head><body>
+        <table><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>
+      </body></html>`;
+      const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'quiz_admin_export_'+Date.now()+'.xls'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ---- Filters ----
+    function applyFilters(rows){
+      const fg = document.getElementById('filterGender');
+      const g = fg ? fg.value : 'all';
+      let out = rows.slice();
+      if(g && g !== 'all'){
+        out = out.filter(r=>{
+          const rg = mapGenderLabel(r.gender);
+          return r.gender === g || rg === g;
+        });
+      }
+      return out;
+    }
+
+    // Route init
+    updateRoute();
+  </script>
+</body>
+</html>

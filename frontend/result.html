@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz – Résultat</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    :root {
+      --page-gradient-start: #003d7c;
+      --page-gradient-mid: #0062b3;
+      --page-gradient-end: #0090ff;
+      --shield-gradient-1: #c2e2ff;
+      --shield-gradient-2: #87c1ff;
+      --shield-gradient-3: #043e6e;
+      --text: #0b132b;
+      --muted: #6b7280;
+      --orange: #ff7a00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      color: var(--text);
+      background: #ffffff; /* خليت الخلفية بيضاء صافي */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .device {
+      width: 100vw;      /* full screen width */
+      height: 100vh;     /* full screen height */
+      background: #ffffff; /* خلفية بيضاء */
+      border-radius: 0;      /* حيدت الزوايا باش تكون full screen */
+      box-shadow: 0 20px 50px rgba(0, 100, 200, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* محتوى device يكون centered vertically */
+      align-items: center;     /* centered horizontally */
+      padding: 0;             /* مافي padding */
+    }
+
+    
+    .card {
+      margin: 30px;
+      height: 60%;
+      width: 85%;
+      border-radius: 24px;
+      background: #bbdff9;
+      box-shadow: 0 20px 50px rgba(0, 100, 200, 0.2);
+      padding-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .shield {
+      position: relative;
+      width: 240px;
+      height: 200px;
+      background: linear-gradient(to bottom,
+        var(--shield-gradient-1) 0%,
+        var(--shield-gradient-2) 40%,
+        var(--shield-gradient-3) 100%);
+      border-radius: 26px;
+      box-shadow: 0 18px 40px rgba(0, 100, 200, 0.38);
+    }
+
+    .portrait-frame {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 26px;
+      overflow: hidden; 
+    }
+
+    .portrait {
+      width: 100%;
+      height: 100%;
+      background: url('background.webp') center/cover no-repeat;
+    }
+
+    .shield::after {
+      content: "";
+      position: absolute;
+      bottom: -25.9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 26px solid transparent;
+      border-right: 26px solid transparent;
+      border-top: 26px solid var(--shield-gradient-3);
+      filter: drop-shadow(0 6px 14px rgb(2, 51, 100)5);
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #0b132b;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .sub {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    .exit-btn {
+      background-color: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 40px;
+    }
+
+    .exit-btn:hover {
+      transform: scale(1.05);
+      background-color: #ff9533;
+    }
+
+    .exit-btn img {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1); /* يخلي الأيقونة بيضاء */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="device">
+    <div class="card">
+      <div class="badge">
+        <div class="shield">
+          <div class="portrait-frame">
+            <div class="portrait"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="title">Vous avez terminé le quiz ! 🎉</div>
+      <div class="sub">Merci de votre participation et 
+        <div>de votre implication.</div></div>
+
+      <button class="exit-btn" onclick="closeSite()">
+        See you later 
+        <img src="icons/wave-hand.png" alt="wave icon">
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function closeSite() {
+      window.open('', '_self').close();
+    }
+  </script>
+</body>
+</html>
